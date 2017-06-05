@@ -1,7 +1,13 @@
 import sys
 
 
-def setup(mapper={}):
+_mapper_ = None
+
+
+def setup(mapper=None, set_mapper=True):
+	if not mapper:
+		mapper = {}
+
 	lowercase = "ᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖ𝑞ʳˢᵗᵘᵛʷˣʸᶻ"
 	lowercase_values = list(range(97, 122+1))
 	mapper.update(zip(lowercase_values, lowercase))
@@ -23,9 +29,17 @@ def setup(mapper={}):
 
 	mapper.update(symbols)
 
+	if set_mapper:
+		global _mapper_
+		_mapper_ = mapper
+
 	return mapper
 
-def convert_char(char, mapper):
+
+def convert_char(char, mapper=None):
+	if not mapper:
+		mapper = _mapper_
+
 	char_value = ord(char)
 	if char_value in mapper:
 		tiny = mapper[char_value]
@@ -34,10 +48,20 @@ def convert_char(char, mapper):
 
 	return tiny
 
-def convert_string(string, mapper):
+
+def convert_string(string, mapper=None):
+	if not mapper:
+		mapper = _mapper_
+
 	return "".join(map(lambda char: convert_char(char, mapper), string))
 
 if __name__ == "__main__":
-	characters_to_tiny = setup()
+	if len(sys.argv) != 2:
+		exit()
+
 	input_string = sys.argv[1]  # assumes only one string is passed in
-	print(convert_string(input_string, characters_to_tiny))
+	setup()
+	print(convert_string(input_string))
+
+else:
+	setup()
