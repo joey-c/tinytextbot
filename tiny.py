@@ -10,7 +10,19 @@ def setup(mapper={}):
 	uppercase_values = list(range(65, 90+1))
 	mapper.update(zip(uppercase_values, uppercase))
 
-	# TO-DO: include punctuation
+	digits = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+	digits_values = list(range(48, 57+1))
+	mapper.update(zip(digits_values, digits))
+
+	symbols = { 33: "﹗",
+				36: "﹩",
+				37: "﹪",
+				38: "﹠",
+				40: "⁽",
+				41: "⁾"}
+
+	mapper.update(symbols)
+
 	return mapper
 
 def convert_char(char, mapper):
