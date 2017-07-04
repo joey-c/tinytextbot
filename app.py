@@ -1,15 +1,19 @@
 import json
 import tiny
 from flask import Flask
+from flask import request
 
 
 app = Flask(__name__)
 app.debug = True
 
 
-@app.route("/<string:input_string>")
-def tinify(input_string):
-    return Result(input_string).to_json()
+@app.route("/", methods=['POST'])
+def post_tinify():
+    update = request.get_json()
+    inline_query = update["inline_query"]
+    query = inline_query["query"]
+    return Result(query).to_json()
 
 
 class Result(object):
