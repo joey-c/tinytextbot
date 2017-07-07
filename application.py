@@ -4,11 +4,11 @@ from flask import Flask
 from flask import request
 
 
-app = Flask(__name__)
-app.debug = True
+application = Flask(__name__)
+application.debug = True
 
 
-@app.route("/", methods=['POST'])
+@application.route("/", methods=['POST'])
 def post_tinify():
     update = request.get_json()
     inline_query = update["inline_query"]
