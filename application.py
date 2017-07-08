@@ -1,5 +1,6 @@
 import json
 import tiny
+from enum import Enum
 import os
 from flask import Flask
 from flask import request
@@ -32,3 +33,39 @@ class Result(object):
 
     def to_json(self):
         return json.dumps(self.__dict__, ensure_ascii=False)
+
+
+class UpdateType(Enum):
+    MESSAGE = 0
+    EDITED_MESSAGE = 1
+    CHANNEL_POST = 2
+    EDITED_CHANNEL_POST = 3
+    INLINE_QUERY = 4
+    CHOSEN_INLINE_RESULT = 5
+    CALLBACK_QUERY = 6
+    SHIPPING_QUERY = 7
+    PRE_CHECKOUT_QUERY = 8
+
+
+update_types = {"message": UpdateType.MESSAGE,
+                "edited_message": UpdateType.EDITED_MESSAGE,
+                "channel_post": UpdateType.CHANNEL_POST,
+                "edited_channel_post": UpdateType.EDITED_CHANNEL_POST,
+                "inline_query": UpdateType.INLINE_QUERY,
+                "chosen_inline_result": UpdateType.CHOSEN_INLINE_RESULT,
+                "callback_query": UpdateType.CALLBACK_QUERY,
+                "shipping_query": UpdateType.SHIPPING_QUERY,
+                "pre_checkout_query": UpdateType.PRE_CHECKOUT_QUERY}
+
+
+class Field(Enum):
+    UPDATE_ID = 0
+    FROM = 1
+    ID = 2
+    CHAT = 3
+
+
+fields = {Field.UPDATE_ID: "update_id",
+          Field.FROM: "from",
+          Field.ID: "id",
+          Field.CHAT: "chat"}
