@@ -13,12 +13,6 @@ api_base = "https://api.telegram.org/bot" + TOKEN + "/"
 api_send_message = api_base + "sendMessage"
 
 
-@application.route("/", methods=['POST'])
-def post_tinify():
-    update = request.get_json()
-    inline_query = update["inline_query"]
-    query = inline_query["query"]
-    return Result(query).to_json()
 
 
 class Result(object):
@@ -69,3 +63,22 @@ fields = {Field.UPDATE_ID: "update_id",
           Field.FROM: "from",
           Field.ID: "id",
           Field.CHAT: "chat"}
+
+
+def tinify(update):
+    inline_query = update["inline_query"]
+    query = inline_query["query"]
+    return Result(query).to_json()
+
+
+routers = {UpdateType.INLINE_QUERY: tinify}
+
+
+@application.route("/", methods=['POST'])
+def route_message():
+    update = request.get_json()
+    update_type = list(filter(
+        lambda possible_update_type: possible_update_type in update,
+        update_types.keys()))[0]
+    route = routers[update_types[update_type]]
+    return route(update)
