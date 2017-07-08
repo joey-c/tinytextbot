@@ -13,15 +13,6 @@ api_base = "https://api.telegram.org/bot" + TOKEN + "/"
 api_send_message = api_base + "sendMessage"
 
 
-class Message(object):
-    def __init__(self, chat_id, message_text):
-        self.chat_id = chat_id
-        self.text = message_text
-
-    def to_json(self):
-        return json.dumps(self.__dict__, ensure_ascii=False)
-
-
 class Result(object):
     """docstring for Result"""
     def __init__(self, query):
@@ -64,25 +55,42 @@ class Field(Enum):
     FROM = 1
     ID = 2
     CHAT = 3
+    MESSAGE = 4
+    SUCCESSFUL = 5
+    DESCRIPTION = 6
+    RESULT = 7
 
 
 fields = {Field.UPDATE_ID: "update_id",
           Field.FROM: "from",
           Field.ID: "id",
-          Field.CHAT: "chat"}
+          Field.CHAT: "chat",
+          Field.MESSAGE: "message",
+          Field.SUCCESSFUL: "ok",
+          Field.DESCRIPTION: "description",
+          Field.RESULT: "result"}
 
 
-def send_message(message):
-    response = outgoing_requests.post(api_send_message, json=message.to_json())
-    return response
+def send_message(chat_id, message_text):
+    message = {"chat_id": chat_id, "text": message_text}
+    response = outgoing_requests.post(api_send_message, json=message)
+    response_json = response.json()
+    successful = response_json[fields[Field.SUCCESSFUL]]
+    response_text = None
+    if successful:
+        response_text = response_json[fields[Field.RESULT]]
+    else:
+        response_text = response_json[fields[Field.DESCRIPTION]]
+    return response_text
 
 
 def new_user(update):
     # To-do: store
-    # user_id = update[UpdateType.MESSAGE][fields[Field.FROM]][fields[Field.ID]]
-    chat_id = update[update_types[UpdateType.MESSAGE]][fields[Field.CHAT]][fields[Field.ID]]
-    greeting = tiny.convert_string("hello!")
-    response = send_message(Message(chat_id, greeting))
+    # user_id = update[fields[Field.MESSAGE]][fields[Field.FROM]][fields[Field.ID]]
+    chat_id = update[fields[Field.MESSAGE]][fields[Field.CHAT]][fields[Field.ID]]
+    greeting = tiny.convert_string("hello")
+    response = send_message(chat_id, greeting)
+    return ""
 
 
 def tinify(update):
