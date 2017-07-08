@@ -4,7 +4,7 @@ from enum import Enum
 import os
 from flask import Flask
 from flask import request
-
+import requests as outgoing_requests
 
 application = Flask(__name__)
 application.debug = True
@@ -13,6 +13,13 @@ api_base = "https://api.telegram.org/bot" + TOKEN + "/"
 api_send_message = api_base + "sendMessage"
 
 
+class Message(object):
+    def __init__(self, chat_id, message_text):
+        self.chat_id = chat_id
+        self.text = message_text
+
+    def to_json(self):
+        return json.dumps(self.__dict__, ensure_ascii=False)
 
 
 class Result(object):
@@ -63,6 +70,11 @@ fields = {Field.UPDATE_ID: "update_id",
           Field.FROM: "from",
           Field.ID: "id",
           Field.CHAT: "chat"}
+
+
+def send_message(message):
+    response = outgoing_requests.post(api_send_message, json=message.to_json())
+    return response
 
 
 def tinify(update):
