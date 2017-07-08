@@ -77,13 +77,22 @@ def send_message(message):
     return response
 
 
+def new_user(update):
+    # To-do: store
+    # user_id = update[UpdateType.MESSAGE][fields[Field.FROM]][fields[Field.ID]]
+    chat_id = update[update_types[UpdateType.MESSAGE]][fields[Field.CHAT]][fields[Field.ID]]
+    greeting = tiny.convert_string("hello!")
+    response = send_message(Message(chat_id, greeting))
+
+
 def tinify(update):
     inline_query = update["inline_query"]
     query = inline_query["query"]
     return Result(query).to_json()
 
 
-routers = {UpdateType.INLINE_QUERY: tinify}
+routers = {UpdateType.MESSAGE: new_user,
+           UpdateType.INLINE_QUERY: tinify}
 
 
 @application.route("/", methods=['POST'])
