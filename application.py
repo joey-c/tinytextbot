@@ -1,11 +1,15 @@
 import json
 import tiny
+import os
 from flask import Flask
 from flask import request
 
 
 application = Flask(__name__)
 application.debug = True
+TOKEN = os.environ["TELEGRAM_TOKEN"]
+api_base = "https://api.telegram.org/bot" + TOKEN + "/"
+api_send_message = api_base + "sendMessage"
 
 
 @application.route("/", methods=['POST'])
