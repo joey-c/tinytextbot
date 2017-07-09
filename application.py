@@ -116,7 +116,7 @@ routers = {UpdateType.MESSAGE: new_user,
            UpdateType.INLINE_QUERY: tinify}
 
 
-@application.route("/", methods=['POST'])
+@application.route("/" + TOKEN, methods=['POST'])
 def route_message():
     update = request.get_json()
     update_type = list(filter(
