@@ -71,9 +71,7 @@ fields = {Field.UPDATE_ID: "update_id",
           Field.RESULT: "result"}
 
 
-def send_message(chat_id, message_text):
-    message = {"chat_id": chat_id, "text": message_text}
-    response = outgoing_requests.post(api_send_message, json=message)
+def check_response(response):
     response_json = response.json()
     successful = response_json[fields[Field.SUCCESSFUL]]
     response_text = None
@@ -81,7 +79,13 @@ def send_message(chat_id, message_text):
         response_text = response_json[fields[Field.RESULT]]
     else:
         response_text = response_json[fields[Field.DESCRIPTION]]
-    return response_text
+    return successful, response_text
+
+
+def send_message(chat_id, message_text):
+    message = {"chat_id": chat_id, "text": message_text}
+    response = outgoing_requests.post(api_send_message, json=message)
+    return check_response(response)
 
 
 def new_user(update):
