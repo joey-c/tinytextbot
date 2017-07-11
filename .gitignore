@@ -1,7 +1,7 @@
 .idea/
 *.sublime-project
 characters.txt
-token
+*token
 certs/
 
 # Created by https://www.gitignore.io/api/python,pycharm,virtualenv,sublimetext,elasticbeanstalk
