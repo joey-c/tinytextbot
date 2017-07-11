@@ -2,9 +2,17 @@ import json
 import tiny
 from enum import Enum
 import os
+import logging
 from flask import Flask
 from flask import request
 import requests as outgoing_requests
+
+
+logging.basicConfig(filename='/opt/python/log/my.log',
+                    level=logging.DEBUG,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    datefmt='%d/%m/%Y %I:%M:%S %p')
+
 
 application = Flask(__name__)
 application.debug = True
@@ -62,6 +70,9 @@ class Field(Enum):
     RESULT = 7
     INLINE_QUERY = 8
     QUERY = 9
+    TEXT = 10
+    DATE = 11
+    MESSAGE_ID = 12
 
 
 fields = {Field.UPDATE_ID: "update_id",
@@ -73,16 +84,17 @@ fields = {Field.UPDATE_ID: "update_id",
           Field.DESCRIPTION: "description",
           Field.RESULT: "result",
           Field.INLINE_QUERY: "inline_query",
-          Field.QUERY: "query"}
+          Field.QUERY: "query",
+          Field.TEXT: "text",
+          Field.DATE: "date",
+          Field.MESSAGE_ID: "message_id"}
 
 
 def check_response(response):
     response_json = response.json()
     successful = response_json[fields[Field.SUCCESSFUL]]
-    response_text = None
-    if successful:
-        response_text = response_json[fields[Field.RESULT]]
-    else:
+    response_text = ""
+    if not successful:
         response_text = response_json[fields[Field.DESCRIPTION]]
     return successful, response_text
 
@@ -94,21 +106,50 @@ def send_message(chat_id, message_text):
 
 
 def new_user(update):
-    # To-do: store
-    # user_id = update[fields[Field.MESSAGE]][fields[Field.FROM]][fields[Field.ID]]
-    chat_id = update[fields[Field.MESSAGE]][fields[Field.CHAT]][fields[Field.ID]]
+    user_id = update[fields[Field.MESSAGE]][fields[Field.FROM]][fields[Field.ID]]
+    logging.getLogger("user").info("id: " + str(user_id))
+
+    message = update[fields[Field.MESSAGE]]
+    message_id = message[fields[Field.MESSAGE_ID]]
+    message_date = message[fields[Field.DATE]]
+    message_text = message[fields[Field.TEXT]]
+    chat_id = message[fields[Field.CHAT]][fields[Field.ID]]
+    logging.getLogger("user.message").debug(
+        "Message " + str(message_id) +
+        " at " + str(message_date) +
+        " by user " + str(user_id) +
+        " in chat " + str(chat_id) +
+        ": \"" + message_text + "\""
+    )
+
     greeting = tiny.convert_string("hello")
-    response = send_message(chat_id, greeting)
+    response_success, response_text = send_message(chat_id, greeting)
+    logging.getLogger("bot.response.message").debug(
+        "To " + str(message_id) +
+        " in " + str(chat_id) +
+        " was successful: " + str(response_success) +
+        ". " + response_text
+    )
+
     return ""
 
 
 def tinify(update):
     inline_query = update[fields[Field.INLINE_QUERY]]
     query_id = inline_query[fields[Field.ID]]
-    result = Result(inline_query[fields[Field.QUERY]])
+    query = inline_query[fields[Field.QUERY]]
+    result = Result(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
     response = outgoing_requests.post(api_answer_inline_query, json=answer)
-    response_result = check_response(response)
+
+    response_success, response_text = check_response(response)
+    logging.getLogger("bot.response.inline_query").debug(
+        "answer: \"" + result.description +
+        "\" to " + str(query_id) +
+        " was successful: " + str(response_success) +
+        ". " + response_text
+    )
+
     return ""
 
 
