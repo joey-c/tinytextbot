@@ -105,7 +105,7 @@ def send_message(chat_id, message_text):
     return check_response(response)
 
 
-def new_user(update):
+def message_to_bot(update):
     user_id = update[fields[Field.MESSAGE]][fields[Field.FROM]][fields[Field.ID]]
     logging.getLogger("user").info("id: " + str(user_id))
 
@@ -122,16 +122,35 @@ def new_user(update):
         ": \"" + message_text + "\""
     )
 
-    greeting = tiny.convert_string("hello")
-    response_success, response_text = send_message(chat_id, greeting)
+    if message_text is "/start":
+        return new_user(chat_id, user_id, message_id)
+
+    instructions = "To use this bot, enter \"@tinytextbot\" followed by your desired message " \
+                   "in the chat you want to send tiny text to. " \
+                   "Tap on the message preview to select and send the converted message."
+    response_success, response_text = send_message(chat_id, instructions)
+
     logging.getLogger("bot.response.message").debug(
         "To " + str(message_id) +
+        " by " + str(user_id) +
         " in " + str(chat_id) +
         " was successful: " + str(response_success) +
         ". " + response_text
     )
 
     return ""
+
+
+def new_user(chat_id, user_id, message_id):
+    greeting = tiny.convert_string("hello")
+    response_success, response_text = send_message(chat_id, greeting)
+    logging.getLogger("bot.response.message").debug(
+        "To " + str(message_id) +
+        " by new user" + user_id +
+        " in " + str(chat_id) +
+        " was successful: " + str(response_success) +
+        ". " + response_text
+    )
 
 
 def tinify(update):
@@ -153,7 +172,7 @@ def tinify(update):
     return ""
 
 
-routers = {UpdateType.MESSAGE: new_user,
+routers = {UpdateType.MESSAGE: message_to_bot,
            UpdateType.INLINE_QUERY: tinify}
 
 
