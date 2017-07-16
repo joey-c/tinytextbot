@@ -163,5 +163,9 @@ def route_message():
     update_type = list(filter(
         lambda possible_update_type: possible_update_type in update,
         update_types.keys()))[0]
-    route = routers[update_types[update_type]]
-    return route(update)
+    result = ""
+    if update_types[update_type] in routers:
+        route = routers[update_types[update_type]]
+        result = route(update)
+
+    return result
