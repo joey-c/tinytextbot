@@ -3,6 +3,9 @@ import tiny
 from enum import Enum
 import os
 import logging
+import math
+import time
+from sortedcontainers import SortedDict
 from flask import Flask
 from flask import request
 import requests as outgoing_requests
@@ -46,6 +49,35 @@ class UpdateType(Enum):
     CALLBACK_QUERY = 6
     SHIPPING_QUERY = 7
     PRE_CHECKOUT_QUERY = 8
+
+
+# Track the latest unique updates to prevent spamming users with multiple responses.
+class SortedDictWithMaxSize(SortedDict):
+    def __init__(self, name, max_size=100, buffer=0.1):
+        super(SortedDictWithMaxSize, self).__init__()
+        self.name = name
+        self.max_size = max_size
+        self.buffer = math.ceil(buffer * max_size)
+
+    def add(self, value):
+        current_size = len(self)
+        logger = logging.getLogger(self.name)
+        logger.debug("Current size is " + str(current_size) + ".")
+
+        if current_size >= self.max_size:
+            keys_to_remove = self.keys()[:self.buffer]
+            logger.info("Removing " + str(len(keys_to_remove)) + " keys.")
+            for key in keys_to_remove:
+                del self[key]
+                logger.debug("Removed " + str(key) + ".")
+
+        time_now = time.time()
+        self[time_now] = value
+        logger.info("Added " + str(time_now) + ":" + str(value) + ".")
+
+
+processed_updates = SortedDictWithMaxSize("tracker.processed_updates")
+ignored_updates = SortedDictWithMaxSize("tracker.ignored_updates")
 
 
 update_types = {"message": UpdateType.MESSAGE,
@@ -105,7 +137,7 @@ def send_message(chat_id, message_text):
     return check_response(response)
 
 
-def message_to_bot(update):
+def message_to_bot(update, update_id):
     user_id = update[fields[Field.MESSAGE]][fields[Field.FROM]][fields[Field.ID]]
     logging.getLogger("user").info("id: " + str(user_id))
 
@@ -123,7 +155,7 @@ def message_to_bot(update):
     )
 
     if message_text is "/start":
-        return new_user(chat_id, user_id, message_id)
+        return new_user(update_id, chat_id, user_id, message_id)
 
     instructions = "To use this bot, enter \"@tinytextbot\" followed by your desired message " \
                    "in the chat you want to send tiny text to. " \
@@ -138,10 +170,13 @@ def message_to_bot(update):
         ". " + response_text
     )
 
+    if response_success:
+        processed_updates.add(update_id)
+
     return ""
 
 
-def new_user(chat_id, user_id, message_id):
+def new_user(update_id, chat_id, user_id, message_id):
     greeting = tiny.convert_string("hello")
     response_success, response_text = send_message(chat_id, greeting)
     logging.getLogger("bot.response.message").debug(
@@ -152,8 +187,11 @@ def new_user(chat_id, user_id, message_id):
         ". " + response_text
     )
 
+    if response_success:
+        processed_updates.add(update_id)
 
-def tinify(update):
+
+def tinify(update, update_id):
     inline_query = update[fields[Field.INLINE_QUERY]]
     query_id = inline_query[fields[Field.ID]]
     query = inline_query[fields[Field.QUERY]]
@@ -169,6 +207,9 @@ def tinify(update):
         ". " + response_text
     )
 
+    if response_success:
+        processed_updates.add(update_id)
+
     return ""
 
 
@@ -178,13 +219,22 @@ routers = {UpdateType.MESSAGE: message_to_bot,
 
 @application.route("/" + TOKEN, methods=['POST'])
 def route_message():
+    result = ""
+
     update = request.get_json()
+    update_id = update[fields[Field.UPDATE_ID]]
+    if update_id in processed_updates.values() or update_id in ignored_updates.values():
+        logging.getLogger("tracker").info("Ignoring update " + str(update_id) + ".")
+        return result
+
     update_type = list(filter(
         lambda possible_update_type: possible_update_type in update,
         update_types.keys()))[0]
-    result = ""
+
     if update_types[update_type] in routers:
         route = routers[update_types[update_type]]
-        result = route(update)
+        result = route(update, update_id)
+    else:
+        ignored_updates.add(update_id)
 
     return result
