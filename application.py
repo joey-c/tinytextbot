@@ -100,17 +100,36 @@ ignored_updates = SortedDictWithMaxSize("tracker.ignored_updates")
 
 
 def check_response(response):
-    response_json = response.json()
-    successful = response_json[Update.Field.SUCCESSFUL.value]
+    successful = False
     response_text = ""
-    if not successful:
-        response_text = response_json[Update.Field.DESCRIPTION.value]
+    if response:
+        response_json = response.json()
+        successful = response_json[Update.Field.SUCCESSFUL.value]
+        if not successful:
+            response_text = response_json[Update.Field.DESCRIPTION.value]
     return successful, response_text
 
 
-def send_message(chat_id, message_text):
+def post_to_telegram(destination, json_data, error_message):
+    response = None
+
+    try:
+        response = outgoing_requests.post(destination, json=json_data, timeout=TIMEOUT)
+        response.raise_for_status()
+    except outgoing_requests.Timeout:
+        logging.getLogger("connection").info("Timed out after " + str(TIMEOUT) + " seconds. " + error_message)
+    except outgoing_requests.ConnectionError:
+        logging.getLogger("connection").info("A network problem occurred. " + error_message)
+    except outgoing_requests.HTTPError:
+        logging.getLogger("connection").info("HTTP request failed with error code " + response.status_code + ". " +
+                                             error_message)
+
+    return response
+
+
+def send_message(chat_id, message_text, error_message):
     message = {"chat_id": chat_id, "text": message_text}
-    response = outgoing_requests.post(api_send_message, json=message, timeout=TIMEOUT)
+    response = post_to_telegram(api_send_message, message, error_message)
     return check_response(response)
 
 
@@ -137,7 +156,9 @@ def message_to_bot(update, update_id):
     instructions = "To use this bot, enter \"@tinytextbot\" followed by your desired message " \
                    "in the chat you want to send tiny text to. " \
                    "Tap on the message preview to select and send the converted message."
-    response_success, response_text = send_message(chat_id, instructions)
+    response_success, response_text = send_message(chat_id,
+                                                   instructions,
+                                                   "Failed to send instructions to " + user_id + ".")
 
     logging.getLogger("bot.response.message").debug(
         "To " + str(message_id) +
@@ -155,7 +176,10 @@ def message_to_bot(update, update_id):
 
 def new_user(update_id, chat_id, user_id, message_id):
     greeting = tiny.convert_string("hello")
-    response_success, response_text = send_message(chat_id, greeting)
+    response_success, response_text = send_message(chat_id,
+                                                   greeting,
+                                                   "Failed to send greeting to " + user_id + ".")
+
     logging.getLogger("bot.response.message").debug(
         "To " + str(message_id) +
         " by new user" + user_id +
@@ -174,9 +198,12 @@ def tinify(update, update_id):
     query = inline_query[Update.Field.QUERY.value]
     result = Result(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
-    response = outgoing_requests.post(api_answer_inline_query, json=answer, timeout=TIMEOUT)
 
+    response = post_to_telegram(api_answer_inline_query,
+                                answer,
+                                "Failed to answer inline query id " + str(query_id) + ".")
     response_success, response_text = check_response(response)
+
     logging.getLogger("bot.response.inline_query").debug(
         "answer: \"" + result.description +
         "\" to " + str(query_id) +
