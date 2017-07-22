@@ -25,6 +25,8 @@ api_base = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/"
 api_send_message = api_base + "sendMessage"
 api_answer_inline_query = api_base + "answerInlineQuery"
 
+TIMEOUT = 7  # in seconds
+
 
 class Result(object):
     """docstring for Result"""
@@ -108,7 +110,7 @@ def check_response(response):
 
 def send_message(chat_id, message_text):
     message = {"chat_id": chat_id, "text": message_text}
-    response = outgoing_requests.post(api_send_message, json=message)
+    response = outgoing_requests.post(api_send_message, json=message, timeout=TIMEOUT)
     return check_response(response)
 
 
@@ -172,7 +174,7 @@ def tinify(update, update_id):
     query = inline_query[Update.Field.QUERY.value]
     result = Result(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
-    response = outgoing_requests.post(api_answer_inline_query, json=answer)
+    response = outgoing_requests.post(api_answer_inline_query, json=answer, timeout=TIMEOUT)
 
     response_success, response_text = check_response(response)
     logging.getLogger("bot.response.inline_query").debug(
