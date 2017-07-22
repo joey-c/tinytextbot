@@ -19,8 +19,9 @@ logging.basicConfig(filename='/opt/python/log/my.log',
 
 application = Flask(__name__)
 application.debug = True
-TOKEN = os.environ["TELEGRAM_TOKEN"]
-api_base = "https://api.telegram.org/bot" + TOKEN + "/"
+
+TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
+api_base = "https://api.telegram.org/bot" + TELEGRAM_TOKEN + "/"
 api_send_message = api_base + "sendMessage"
 api_answer_inline_query = api_base + "answerInlineQuery"
 
@@ -217,7 +218,7 @@ routers = {UpdateType.MESSAGE: message_to_bot,
            UpdateType.INLINE_QUERY: tinify}
 
 
-@application.route("/" + TOKEN, methods=['POST'])
+@application.route("/" + TELEGRAM_TOKEN, methods=['POST'])
 def route_message():
     result = ""
 
