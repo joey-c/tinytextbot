@@ -3,6 +3,7 @@ import logging
 from flask import Flask
 from flask import request
 
+import analytics
 import telegram
 import tiny
 from sorted_dict import SortedDictWithMaxSize
@@ -61,6 +62,17 @@ def message_to_bot(update, update_id):
     if response_success:
         processed_updates.add(update_id)
 
+        params = analytics.build_params(user_id,
+                                        analytics.Event.Category.USER,
+                                        analytics.Event.Action.MESSAGE,
+                                        event_label=message_text)
+        analytics.update(params)
+
+        params = analytics.build_params(user_id,
+                                        analytics.Event.Category.BOT,
+                                        analytics.Event.Action.INSTRUCTIONS)
+        analytics.update(params)
+
     return ""
 
 
@@ -79,13 +91,25 @@ def new_user(update_id, chat_id, user_id, message_id):
     if response_success:
         processed_updates.add(update_id)
 
+    params = analytics.build_params(user_id,
+                                    analytics.Event.Category.USER,
+                                    analytics.Event.Action.START,
+                                    event_label=chat_id)
+    analytics.update(params)
+
     return ""
 
 
 def tinify(update, update_id):
     inline_query = update[telegram.Update.Field.INLINE_QUERY.value]
+    user_id = inline_query[telegram.Update.Field.FROM.value][telegram.Update.Field.ID.value]
     query_id = inline_query[telegram.Update.Field.ID.value]
     query = inline_query[telegram.Update.Field.QUERY.value]
+
+    params = analytics.build_params(user_id,
+                                    analytics.Event.Category.USER,
+                                    analytics.Event.Action.PREVIEW)
+    analytics.update(params)
 
     result = telegram.Result(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
