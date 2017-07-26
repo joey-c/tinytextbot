@@ -10,7 +10,7 @@ import tiny
 
 class Result(object):
     def __init__(self, query):
-        super(Result, self).__init__()
+        super().__init__()
         self.type = "article"
         self.id = str(hash(query))
         self.title = "Choose this to send your tiny text!"
@@ -72,17 +72,20 @@ def check_response(response):
 # Catches common possible connection errors and logs them with error_message.
 def post(destination, json_data, error_message, connection_timeout=7):
     response = None
+    logger = logging.getLogger("connection")
 
     try:
-        response = outgoing_requests.post(destination, json=json_data, timeout=connection_timeout)
+        response = outgoing_requests.post(destination,
+                                          json=json_data,
+                                          timeout=connection_timeout)
         response.raise_for_status()
     except outgoing_requests.Timeout:
-        logging.getLogger("connection").info("Timed out after " + str(connection_timeout) + " seconds. " +
-                                             error_message)
+        logger.info("Timed out after " + str(connection_timeout) +
+                    " seconds. " + error_message)
     except outgoing_requests.ConnectionError:
-        logging.getLogger("connection").info("A network problem occurred. " + error_message)
+        logger.info("A network problem occurred. " + error_message)
     except outgoing_requests.HTTPError:
-        logging.getLogger("connection").info("HTTP request failed with error code " + str(response.status_code) +
-                                             ". " + error_message)
+        logger.info("HTTP request failed with error code " +
+                    str(response.status_code) + ". " + error_message)
 
     return response

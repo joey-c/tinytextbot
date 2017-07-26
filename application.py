@@ -10,7 +10,8 @@ from sorted_dict import SortedDictWithMaxSize
 
 logging.basicConfig(filename='/opt/python/log/my.log',
                     level=logging.DEBUG,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    format='%(asctime)s - %(name)s - %(levelname)s - '
+                           '%(message)s',
                     datefmt='%d/%m/%Y %I:%M:%S %p')
 
 application = Flask(__name__)
@@ -18,7 +19,8 @@ application.debug = True
 
 CONNECTION_TIMEOUT = 7  # in seconds
 
-# Track the latest unique updates to prevent spamming users with multiple responses.
+# Track the latest unique updates to prevent spamming users with multiple
+# responses to the same update.
 processed_updates = SortedDictWithMaxSize("tracker.processed_updates")
 ignored_updates = SortedDictWithMaxSize("tracker.ignored_updates")
 
@@ -26,7 +28,8 @@ ignored_updates = SortedDictWithMaxSize("tracker.ignored_updates")
 # Sends a Telegram message
 def send_message(chat_id, message_text, error_message):
     message = {"chat_id": chat_id, "text": message_text}
-    response = telegram.post(telegram.api_send_message, message, error_message, connection_timeout=CONNECTION_TIMEOUT)
+    response = telegram.post(telegram.api_send_message, message, error_message,
+                             connection_timeout=CONNECTION_TIMEOUT)
     return telegram.check_response(response)
 
 
@@ -35,12 +38,13 @@ def send_message(chat_id, message_text, error_message):
 # begins interacting with the bot, the bot will reply with a standard greeting.
 # Else, the bot will reply with usage instructions.
 def message_to_bot(update, update_id):
-    message = update[telegram.Update.Field.MESSAGE.value]
-    user_id = message[telegram.Update.Field.FROM.value][telegram.Update.Field.ID.value]
-    message_id = message[telegram.Update.Field.MESSAGE_ID.value]
-    message_date = message[telegram.Update.Field.DATE.value]
-    message_text = message[telegram.Update.Field.TEXT.value]
-    chat_id = message[telegram.Update.Field.CHAT.value][telegram.Update.Field.ID.value]
+    fields = telegram.Update.Field
+    message = update[fields.MESSAGE.value]
+    user_id = message[fields.FROM.value][fields.ID.value]
+    message_id = message[fields.MESSAGE_ID.value]
+    message_date = message[fields.DATE.value]
+    message_text = message[fields.TEXT.value]
+    chat_id = message[fields.CHAT.value][fields.ID.value]
 
     logging.getLogger("user.message").debug("Message " + str(message_id) +
                                             " at " + str(message_date) +
@@ -51,18 +55,21 @@ def message_to_bot(update, update_id):
     if message_text is "/start":
         return new_user(update_id, chat_id, user_id, message_id)
 
-    instructions = "To use this bot, enter \"@tinytextbot\" followed by your desired message " \
-                   "in the chat you want to send tiny text to. " \
-                   "Tap on the message preview to select and send the converted message."
-    response_success, response_text = send_message(chat_id,
-                                                   instructions,
-                                                   "Failed to send instructions to " + str(user_id) + ".")
+    instructions = "To use this bot, enter \"@tinytextbot\" followed by " \
+                   "your desired message in the chat you want to send " \
+                   "tiny text to. Tap on the message preview to select and " \
+                   "send the converted message."
+    response_success, response_text = send_message(
+        chat_id,
+        instructions,
+        "Failed to send instructions to " + str(user_id) + ".")
 
-    logging.getLogger("bot.response.message").debug("To " + str(message_id) +
-                                                    " by " + str(user_id) +
-                                                    " in " + str(chat_id) +
-                                                    " was successful: " + str(response_success) +
-                                                    ". " + response_text)
+    logging.getLogger("bot.response.message").debug(
+        "To " + str(message_id) +
+        " by " + str(user_id) +
+        " in " + str(chat_id) +
+        " was successful: " + str(response_success) + ". " +
+        response_text)
 
     if response_success:
         processed_updates.add(update_id)
@@ -84,15 +91,17 @@ def message_to_bot(update, update_id):
 # Sends a greeting
 def new_user(update_id, chat_id, user_id, message_id):
     greeting = tiny.convert_string("hello")
-    response_success, response_text = send_message(chat_id,
-                                                   greeting,
-                                                   "Failed to send greeting to " + str(user_id) + ".")
+    response_success, response_text = send_message(
+        chat_id,
+        greeting,
+        "Failed to send greeting to " + str(user_id) + ".")
 
-    logging.getLogger("bot.response.message").debug("To " + str(message_id) +
-                                                    " by new user" + str(user_id) +
-                                                    " in " + str(chat_id) +
-                                                    " was successful: " + str(response_success) +
-                                                    ". " + response_text)
+    logging.getLogger("bot.response.message").debug(
+        "To " + str(message_id) +
+        " by new user" + str(user_id) +
+        " in " + str(chat_id) +
+        " was successful: " + str(response_success) +
+        ". " + response_text)
 
     if response_success:
         processed_updates.add(update_id)
@@ -108,14 +117,15 @@ def new_user(update_id, chat_id, user_id, message_id):
 
 # Unwraps a query and responds with the query in tiny text.
 def tinify(update, update_id):
-    inline_query = update[telegram.Update.Field.INLINE_QUERY.value]
-    query = inline_query[telegram.Update.Field.QUERY.value]
+    fields = telegram.Update.Field
+    inline_query = update[fields.INLINE_QUERY.value]
+    query = inline_query[fields.QUERY.value]
     if not query:
         ignored_updates.add(update_id)
         return ""
 
-    user_id = inline_query[telegram.Update.Field.FROM.value][telegram.Update.Field.ID.value]
-    query_id = inline_query[telegram.Update.Field.ID.value]
+    user_id = inline_query[fields.FROM.value][fields.ID.value]
+    query_id = inline_query[fields.ID.value]
 
     params = analytics.build_params(user_id,
                                     analytics.Event.Category.USER,
@@ -125,16 +135,18 @@ def tinify(update, update_id):
     result = telegram.Result(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
 
-    response = telegram.post(telegram.api_answer_inline_query,
-                             answer,
-                             "Failed to answer inline query id " + str(query_id) + ".",
-                             connection_timeout=CONNECTION_TIMEOUT)
+    response = telegram.post(
+        telegram.api_answer_inline_query,
+        answer,
+        "Failed to answer inline query id " + str(query_id) + ".",
+        connection_timeout=CONNECTION_TIMEOUT)
     response_success, response_text = telegram.check_response(response)
 
-    logging.getLogger("bot.response.inline_query").debug("Answer: \"" + result.description +
-                                                         "\" to " + str(query_id) +
-                                                         " was successful: " + str(response_success) +
-                                                         ". " + response_text)
+    logging.getLogger("bot.response.inline_query").debug(
+        "Answer: \"" + result.description +
+        "\" to " + str(query_id) +
+        " was successful: " + str(response_success) + ". " +
+        response_text)
 
     if response_success:
         processed_updates.add(update_id)
@@ -156,12 +168,15 @@ def route_message():
 
     update = request.get_json()
     update_id = update[telegram.Update.Field.UPDATE_ID.value]
-    if update_id in processed_updates.values() or update_id in ignored_updates.values():
-        logging.getLogger("tracker").info("Ignoring update " + str(update_id) + ".")
+    if update_id in processed_updates.values() or \
+       update_id in ignored_updates.values():
+        logger = logging.getLogger("tracker")
+        logger.info("Ignoring update " + str(update_id) + ".")
         return result
 
-    update_type = list(filter(lambda possible_type: possible_type.value in update,
-                              telegram.Update.Type))[0]
+    update_type = list(
+        filter(lambda possible_type: possible_type.value in update,
+               telegram.Update.Type))[0]
 
     if update_type in routers:
         result = routers[update_type](update, update_id)

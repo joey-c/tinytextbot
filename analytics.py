@@ -56,15 +56,19 @@ def update(params):
 # Catches common connection errors.
 def send_to_analytics(destination, params):
     response = None
-    connection_logger = logging.getLogger("connection.analytics")
+    logger = logging.getLogger("connection.analytics")
     try:
-        response = outgoing_requests.post(destination, params=params, timeout=CONNECTION_TIMEOUT)
+        response = outgoing_requests.post(destination,
+                                          params=params,
+                                          timeout=CONNECTION_TIMEOUT)
     except outgoing_requests.Timeout:
-        connection_logger.info("Timed out after " + str(CONNECTION_TIMEOUT) + " seconds. ")
+        logger.info("Timed out after " + str(CONNECTION_TIMEOUT) +
+                    " seconds. ")
     except outgoing_requests.ConnectionError:
-        connection_logger.info("A network problem occurred. ")
+        logger.info("A network problem occurred. ")
     except outgoing_requests.HTTPError:
-        connection_logger.info("HTTP request failed with error code " + str(response.status_code) + ". ")
+        logger.info("HTTP request failed with error code " +
+                    str(response.status_code) + ". ")
     return response
 
 

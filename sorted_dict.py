@@ -7,7 +7,7 @@ from sortedcontainers import SortedDict
 
 class SortedDictWithMaxSize(SortedDict):
     def __init__(self, name, max_size=100, buffer=0.1):
-        super(SortedDictWithMaxSize, self).__init__()
+        super().__init__()
         self.name = name
         self.max_size = max_size
         self.buffer = math.ceil(buffer * max_size)
