@@ -102,9 +102,13 @@ def new_user(update_id, chat_id, user_id, message_id):
 
 def tinify(update, update_id):
     inline_query = update[telegram.Update.Field.INLINE_QUERY.value]
+    query = inline_query[telegram.Update.Field.QUERY.value]
+    if not query:
+        ignored_updates.add(update_id)
+        return ""
+
     user_id = inline_query[telegram.Update.Field.FROM.value][telegram.Update.Field.ID.value]
     query_id = inline_query[telegram.Update.Field.ID.value]
-    query = inline_query[telegram.Update.Field.QUERY.value]
 
     params = analytics.build_params(user_id,
                                     analytics.Event.Category.USER,
