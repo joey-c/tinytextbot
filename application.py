@@ -23,12 +23,17 @@ processed_updates = SortedDictWithMaxSize("tracker.processed_updates")
 ignored_updates = SortedDictWithMaxSize("tracker.ignored_updates")
 
 
+# Sends a Telegram message
 def send_message(chat_id, message_text, error_message):
     message = {"chat_id": chat_id, "text": message_text}
     response = telegram.post(telegram.api_send_message, message, error_message, connection_timeout=CONNECTION_TIMEOUT)
     return telegram.check_response(response)
 
 
+# Sends a Telegram message after receiving a message.
+# If the received message is "/start", which is automatically sent when a user
+# begins interacting with the bot, the bot will reply with a standard greeting.
+# Else, the bot will reply with usage instructions.
 def message_to_bot(update, update_id):
     message = update[telegram.Update.Field.MESSAGE.value]
     user_id = message[telegram.Update.Field.FROM.value][telegram.Update.Field.ID.value]
@@ -76,6 +81,7 @@ def message_to_bot(update, update_id):
     return ""
 
 
+# Sends a greeting
 def new_user(update_id, chat_id, user_id, message_id):
     greeting = tiny.convert_string("hello")
     response_success, response_text = send_message(chat_id,
@@ -100,6 +106,7 @@ def new_user(update_id, chat_id, user_id, message_id):
     return ""
 
 
+# Unwraps a query and responds with the query in tiny text.
 def tinify(update, update_id):
     inline_query = update[telegram.Update.Field.INLINE_QUERY.value]
     query = inline_query[telegram.Update.Field.QUERY.value]
@@ -139,6 +146,10 @@ routers = {telegram.Update.Type.MESSAGE: message_to_bot,
            telegram.Update.Type.INLINE_QUERY: tinify}
 
 
+# Route the incoming update to the relevant handlers.
+# If the update is a previously processed update (i.e. Telegram repeated it),
+# or if the update is not a supported type as defined in routers,
+# ignore the update, and return a 200.
 @application.route("/" + telegram.TOKEN, methods=['POST'])
 def route_message():
     result = ""

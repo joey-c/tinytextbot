@@ -28,6 +28,9 @@ class Event(object):
         INSTRUCTIONS = "Instructions"
 
 
+# Sends a payload containing base_payload and params to Google Analytics.
+# If the hit is valid as verified by sending it to analytics_debug,
+# then the hit will be sent to analytics_real.
 def update(params):
     params.update(base_payload)
     response = send_to_analytics(analytics_debug, params)
@@ -49,6 +52,8 @@ def update(params):
     return successful
 
 
+# Sends params to destination via url-encoding.
+# Catches common connection errors.
 def send_to_analytics(destination, params):
     response = None
     connection_logger = logging.getLogger("connection.analytics")

@@ -55,6 +55,8 @@ api_send_message = api_base + "sendMessage"
 api_answer_inline_query = api_base + "answerInlineQuery"
 
 
+# Unwraps Telegrams's response and returns a boolean successful and
+# the accompanying reasons.
 def check_response(response):
     successful = False
     response_text = ""
@@ -66,6 +68,8 @@ def check_response(response):
     return successful, response_text
 
 
+# Sends json_data to the destination with a connection_timeout.
+# Catches common possible connection errors and logs them with error_message.
 def post(destination, json_data, error_message, connection_timeout=7):
     response = None
 
