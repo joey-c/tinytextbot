@@ -132,7 +132,7 @@ def tinify(update, update_id):
                                     analytics.Event.Action.PREVIEW)
     analytics.update(params)
 
-    result = telegram.Result(query)
+    result = telegram.ArticleResult(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
 
     response = telegram.post(

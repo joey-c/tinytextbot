@@ -9,16 +9,22 @@ import tiny
 
 
 class Result(object):
-    def __init__(self, query):
+    def __init__(self, result_type, id):
         super().__init__()
-        self.type = "article"
-        self.id = str(hash(query))
+        self.type = result_type
+        self.id = id
+
+    def to_json(self):
+        return json.dumps(self.__dict__, ensure_ascii=False)
+
+
+class ArticleResult(Result):
+    def __init__(self, query):
+        super().__init__("article", str(hash(query)))
         self.title = "Choose this to send your tiny text!"
         self.description = tiny.convert_string(query)
         self.input_message_content = {"message_text": self.description}
 
-    def to_json(self):
-        return json.dumps(self.__dict__, ensure_ascii=False)
 
 
 class Update(object):
