@@ -154,8 +154,22 @@ def tinify(update, update_id):
     return ""
 
 
+def sent_message(update, update_id):
+    logging.getLogger("user.sent").info("Confirmation received.")
+    user_id = update[telegram.Update.Field.FROM]
+    params = analytics.build_params(user_id,
+                                    analytics.Event.Category.USER,
+                                    analytics.Event.Action.SENT)
+    update_result = analytics.update(params)
+    if update_result:
+        processed_updates.add(update_id)
+
+    return ""
+
+
 routers = {telegram.Update.Type.MESSAGE: message_to_bot,
-           telegram.Update.Type.INLINE_QUERY: tinify}
+           telegram.Update.Type.INLINE_QUERY: tinify,
+           telegram.Update.Type.CHOSEN_INLINE_RESULT: sent_message}
 
 
 # Route the incoming update to the relevant handlers.
@@ -181,6 +195,8 @@ def route_message():
     if update_type in routers:
         result = routers[update_type](update, update_id)
     else:
+        logging.getLogger("telegram.update").info("Ignoring update: " +
+                                                  str(update))
         ignored_updates.add(update_id)
 
     return result
