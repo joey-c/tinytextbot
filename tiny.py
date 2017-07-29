@@ -8,6 +8,9 @@ def setup(mapper=None, set_mapper=True):
     if not mapper:
         mapper = {}
 
+    # +1 is to compensate for range treating the end parameter exclusively.
+    # Lowercase letters are 97 to 122 (inclusive) in unicode.
+    # The following cases are handled similarly.
     lowercase = "ᵃᵇᶜᵈᵉᶠᵍʰᶦʲᵏˡᵐⁿᵒᵖ𝑞ʳˢᵗᵘᵛʷˣʸᶻ"
     lowercase_values = list(range(97, 122+1))
     mapper.update(zip(lowercase_values, lowercase))
