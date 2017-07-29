@@ -130,7 +130,7 @@ def inline_query_handler(update, update_id):
                      analytics.Event.Category.USER,
                      analytics.Event.Action.PREVIEW)
 
-    result = telegram.Result(query)
+    result = telegram.Result(tiny.convert_string(query))
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
 
     response = telegram.post(

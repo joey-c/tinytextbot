@@ -5,17 +5,15 @@ from enum import Enum
 
 import requests as outgoing_requests
 
-import tiny
-
 
 class Result(object):
-    def __init__(self, query):
+    def __init__(self, result):
         super().__init__()
         self.type = "article"
-        self.id = str(hash(query))
+        self.id = "0"
         self.title = "Choose this to send your tiny text!"
-        self.description = tiny.convert_string(query)
-        self.input_message_content = {"message_text": self.description}
+        self.description = result
+        self.input_message_content = {"message_text": result}
 
     def to_json(self):
         return json.dumps(self.__dict__, ensure_ascii=False)
@@ -87,5 +85,7 @@ def post(destination, json_data, error_message, connection_timeout=7):
     except outgoing_requests.HTTPError:
         logger.info("HTTP request failed with error code " +
                     str(response.status_code) + ". " + error_message)
+    finally:
+        logger.debug(str(json_data))
 
     return response
