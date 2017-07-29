@@ -6,7 +6,7 @@ from flask import request
 import analytics
 import telegram
 import tiny
-from sorted_dict import SortedDictWithMaxSize
+from sorted_dict_with_max_size import SortedDictWithMaxSize
 
 
 logging.basicConfig(filename='/opt/python/log/my.log',
