@@ -32,24 +32,28 @@ class Event(object):
 # If the hit is valid as verified by sending it to analytics_debug,
 # then the hit will be sent to analytics_real.
 def update(user_id, event_category, event_action, event_label=None):
-    params = build_params(user_id, event_category, event_action, event_label)
-    response = send(analytics_debug, params)
     logger = logging.getLogger("Analytics")
-
-    successful = False
-    if response:
-        result = response.json()["hitParsingResult"][0]
-        successful = result["valid"]
-        if not successful:
-            logger.info("Invalid update occurred.")
-            logger.debug(str(result["parserMessage"]))
-
-    if successful:
+    params = build_params(user_id, event_category, event_action, event_label)
+    valid = validate_hit(params)
+    if valid:
         response = send(analytics_real, params)
         if response:
             logger.info("Successfully updated with " + str(params))
+    return valid
 
-    return successful
+
+# Sends params to analytics_debug to check if the hit is valid.
+def validate_hit(params):
+    logger = logging.getLogger("Analytics")
+    response = send(analytics_debug, params)
+    valid = False
+    if response:
+        result = response.json()["hitParsingResult"][0]
+        valid = result["valid"]
+        if not valid:
+            logger.info("Invalid update occurred.")
+            logger.debug(str(result["parserMessage"]))
+    return valid
 
 
 # Sends params to destination via url-encoding.
