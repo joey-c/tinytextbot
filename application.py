@@ -18,6 +18,11 @@ application = Flask(__name__)
 application.debug = True
 
 CONNECTION_TIMEOUT = 7  # in seconds
+HELLO = tiny.convert_string("hello")
+INSTRUCTIONS = "To use this bot, enter \"@tinytextbot\" followed by " \
+           "your desired message in the chat you want to send " \
+           "tiny text to. Tap on the message preview to select and " \
+           "send the converted message."
 
 # Track the latest unique updates to prevent spamming users with multiple
 # responses to the same update.
@@ -55,10 +60,7 @@ def message_to_bot_handler(update, update_id):
     if message_text is "/start":
         return greet_new_user(update_id, chat_id, user_id, message_id)
 
-    instructions = "To use this bot, enter \"@tinytextbot\" followed by " \
-                   "your desired message in the chat you want to send " \
-                   "tiny text to. Tap on the message preview to select and " \
-                   "send the converted message."
+    instructions = INSTRUCTIONS
     response_success, response_text = send_message(
         chat_id,
         instructions,
@@ -88,7 +90,7 @@ def message_to_bot_handler(update, update_id):
 
 # Sends a greeting
 def greet_new_user(update_id, chat_id, user_id, message_id):
-    greeting = tiny.convert_string("hello")
+    greeting = HELLO
     response_success, response_text = send_message(
         chat_id,
         greeting,
