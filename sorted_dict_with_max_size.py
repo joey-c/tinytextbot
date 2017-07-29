@@ -6,11 +6,10 @@ from sortedcontainers import SortedDict
 
 
 class SortedDictWithMaxSize(SortedDict):
-    def __init__(self, name, max_size=100, buffer=0.1):
+    def __init__(self, name, max_size=100):
         super().__init__()
         self.name = name
         self.max_size = max_size
-        self.buffer = math.ceil(buffer * max_size)
 
     def add(self, value):
         current_size = len(self)
@@ -18,8 +17,10 @@ class SortedDictWithMaxSize(SortedDict):
         logger.debug("Current size is " + str(current_size) + ".")
 
         if current_size >= self.max_size:
-            keys_to_remove = self.keys()[:self.buffer]
-            logger.info("Removing " + str(len(keys_to_remove)) + " keys.")
+            # Remove enough keys such that there is space for one new item.
+            number_of_keys_to_remove = current_size - self.max_size + 1
+            keys_to_remove = self.keys()[:number_of_keys_to_remove]
+            logger.info("Removing " + str(number_of_keys_to_remove) + " keys.")
             for key in keys_to_remove:
                 del self[key]
                 logger.debug("Removed " + str(key) + ".")
