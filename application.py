@@ -37,7 +37,7 @@ def send_message(chat_id, message_text, error_message):
 # If the received message is "/start", which is automatically sent when a user
 # begins interacting with the bot, the bot will reply with a standard greeting.
 # Else, the bot will reply with usage instructions.
-def message_to_bot(update, update_id):
+def message_to_bot_handler(update, update_id):
     fields = telegram.Update.Field
     message = update[fields.MESSAGE.value]
     user_id = message[fields.FROM.value][fields.ID.value]
@@ -53,7 +53,7 @@ def message_to_bot(update, update_id):
                                             ": \"" + message_text + "\"")
 
     if message_text is "/start":
-        return new_user(update_id, chat_id, user_id, message_id)
+        return greet_new_user(update_id, chat_id, user_id, message_id)
 
     instructions = "To use this bot, enter \"@tinytextbot\" followed by " \
                    "your desired message in the chat you want to send " \
@@ -89,7 +89,7 @@ def message_to_bot(update, update_id):
 
 
 # Sends a greeting
-def new_user(update_id, chat_id, user_id, message_id):
+def greet_new_user(update_id, chat_id, user_id, message_id):
     greeting = tiny.convert_string("hello")
     response_success, response_text = send_message(
         chat_id,
@@ -116,7 +116,7 @@ def new_user(update_id, chat_id, user_id, message_id):
 
 
 # Unwraps a query and responds with the query in tiny text.
-def tinify(update, update_id):
+def inline_query_handler(update, update_id):
     fields = telegram.Update.Field
     inline_query = update[fields.INLINE_QUERY.value]
     query = inline_query[fields.QUERY.value]
@@ -154,7 +154,8 @@ def tinify(update, update_id):
     return ""
 
 
-def sent_message(update, update_id):
+# Updates analytics that a query result was chosen, and hence sent.
+def result_chosen_handler(update, update_id):
     logging.getLogger("user.sent").info("Confirmation received.")
     user_id = update[telegram.Update.Field.FROM]
     params = analytics.build_params(user_id,
@@ -167,9 +168,9 @@ def sent_message(update, update_id):
     return ""
 
 
-routers = {telegram.Update.Type.MESSAGE: message_to_bot,
-           telegram.Update.Type.INLINE_QUERY: tinify,
-           telegram.Update.Type.CHOSEN_INLINE_RESULT: sent_message}
+routes = {telegram.Update.Type.MESSAGE: message_to_bot_handler,
+          telegram.Update.Type.INLINE_QUERY: inline_query_handler,
+          telegram.Update.Type.CHOSEN_INLINE_RESULT: result_chosen_handler}
 
 
 # Route the incoming update to the relevant handlers.
@@ -177,7 +178,7 @@ routers = {telegram.Update.Type.MESSAGE: message_to_bot,
 # or if the update is not a supported type as defined in routers,
 # ignore the update, and return a 200.
 @application.route("/" + telegram.TOKEN, methods=['POST'])
-def route_message():
+def route_update():
     result = ""
 
     update = request.get_json()
@@ -192,8 +193,8 @@ def route_message():
         filter(lambda possible_type: possible_type.value in update,
                telegram.Update.Type))[0]
 
-    if update_type in routers:
-        result = routers[update_type](update, update_id)
+    if update_type in routes:
+        result = routes[update_type](update, update_id)
     else:
         logging.getLogger("telegram.update").info("Ignoring update: " +
                                                   str(update))

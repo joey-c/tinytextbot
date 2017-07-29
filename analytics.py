@@ -33,7 +33,7 @@ class Event(object):
 # then the hit will be sent to analytics_real.
 def update(params):
     params.update(base_payload)
-    response = send_to_analytics(analytics_debug, params)
+    response = send(analytics_debug, params)
     logger = logging.getLogger("Analytics")
 
     successful = False
@@ -45,7 +45,7 @@ def update(params):
             logger.debug(str(result["parserMessage"]))
 
     if successful:
-        response = send_to_analytics(analytics_real, params)
+        response = send(analytics_real, params)
         if response:
             logger.info("Successfully updated with " + str(params))
 
@@ -54,7 +54,7 @@ def update(params):
 
 # Sends params to destination via url-encoding.
 # Catches common connection errors.
-def send_to_analytics(destination, params):
+def send(destination, params):
     response = None
     logger = logging.getLogger("connection.analytics")
     try:
