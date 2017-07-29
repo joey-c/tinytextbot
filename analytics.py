@@ -31,8 +31,8 @@ class Event(object):
 # Sends a payload containing base_payload and params to Google Analytics.
 # If the hit is valid as verified by sending it to analytics_debug,
 # then the hit will be sent to analytics_real.
-def update(params):
-    params.update(base_payload)
+def update(user_id, event_category, event_action, event_label=None):
+    params = build_params(user_id, event_category, event_action, event_label)
     response = send(analytics_debug, params)
     logger = logging.getLogger("Analytics")
 
@@ -72,7 +72,7 @@ def send(destination, params):
     return response
 
 
-def build_params(user_id, event_category, event_action, event_label=None):
+def build_params(user_id, event_category, event_action, event_label):
     params = {"uid": user_id,
               "ec": event_category.value,
               "ea": event_action.value}
@@ -80,4 +80,5 @@ def build_params(user_id, event_category, event_action, event_label=None):
     if event_label:
         params.update(el=event_label)
 
+    params.update(base_payload)
     return params

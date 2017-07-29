@@ -74,16 +74,14 @@ def message_to_bot_handler(update, update_id):
     if response_success:
         processed_updates.add(update_id)
 
-        params = analytics.build_params(user_id,
-                                        analytics.Event.Category.USER,
-                                        analytics.Event.Action.MESSAGE,
-                                        event_label=message_text)
-        analytics.update(params)
+        analytics.update(user_id,
+                         analytics.Event.Category.USER,
+                         analytics.Event.Action.MESSAGE,
+                         event_label=message_text)
 
-        params = analytics.build_params(user_id,
-                                        analytics.Event.Category.BOT,
-                                        analytics.Event.Action.INSTRUCTIONS)
-        analytics.update(params)
+        analytics.update(user_id,
+                         analytics.Event.Category.BOT,
+                         analytics.Event.Action.INSTRUCTIONS)
 
     return ""
 
@@ -106,11 +104,10 @@ def greet_new_user(update_id, chat_id, user_id, message_id):
     if response_success:
         processed_updates.add(update_id)
 
-    params = analytics.build_params(user_id,
-                                    analytics.Event.Category.USER,
-                                    analytics.Event.Action.START,
-                                    event_label=chat_id)
-    analytics.update(params)
+    analytics.update(user_id,
+                     analytics.Event.Category.USER,
+                     analytics.Event.Action.START,
+                     event_label=chat_id)
 
     return ""
 
@@ -127,10 +124,9 @@ def inline_query_handler(update, update_id):
     user_id = inline_query[fields.FROM.value][fields.ID.value]
     query_id = inline_query[fields.ID.value]
 
-    params = analytics.build_params(user_id,
-                                    analytics.Event.Category.USER,
-                                    analytics.Event.Action.PREVIEW)
-    analytics.update(params)
+    analytics.update(user_id,
+                     analytics.Event.Category.USER,
+                     analytics.Event.Action.PREVIEW)
 
     result = telegram.ArticleResult(query)
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
@@ -158,10 +154,9 @@ def inline_query_handler(update, update_id):
 def result_chosen_handler(update, update_id):
     logging.getLogger("user.sent").info("Confirmation received.")
     user_id = update[telegram.Update.Field.FROM]
-    params = analytics.build_params(user_id,
-                                    analytics.Event.Category.USER,
-                                    analytics.Event.Action.SENT)
-    update_result = analytics.update(params)
+    update_result = analytics.update(user_id,
+                                      analytics.Event.Category.USER,
+                                      analytics.Event.Action.SENT)
     if update_result:
         processed_updates.add(update_id)
 
