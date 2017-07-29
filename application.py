@@ -8,6 +8,7 @@ import telegram
 import tiny
 from sorted_dict import SortedDictWithMaxSize
 
+
 logging.basicConfig(filename='/opt/python/log/my.log',
                     level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - '
@@ -20,9 +21,9 @@ application.debug = True
 CONNECTION_TIMEOUT = 7  # in seconds
 HELLO = tiny.convert_string("hello")
 INSTRUCTIONS = "To use this bot, enter \"@tinytextbot\" followed by " \
-           "your desired message in the chat you want to send " \
-           "tiny text to. Tap on the message preview to select and " \
-           "send the converted message."
+               "your desired message in the chat you want to send " \
+               "tiny text to. Tap on the message preview to select and " \
+               "send the converted message."
 
 # Track the latest unique updates to prevent spamming users with multiple
 # responses to the same update.
@@ -33,7 +34,9 @@ ignored_updates = SortedDictWithMaxSize("tracker.ignored_updates")
 # Sends a Telegram message
 def send_message(chat_id, message_text, error_message):
     message = {"chat_id": chat_id, "text": message_text}
-    response = telegram.post(telegram.api_send_message, message, error_message,
+    response = telegram.post(telegram.api_send_message,
+                             message,
+                             error_message,
                              connection_timeout=CONNECTION_TIMEOUT)
     return telegram.check_response(response)
 
@@ -157,8 +160,8 @@ def result_chosen_handler(update, update_id):
     logging.getLogger("user.sent").info("Confirmation received.")
     user_id = update[telegram.Update.Field.FROM]
     update_result = analytics.update(user_id,
-                                      analytics.Event.Category.USER,
-                                      analytics.Event.Action.SENT)
+                                     analytics.Event.Category.USER,
+                                     analytics.Event.Action.SENT)
     if update_result:
         processed_updates.add(update_id)
 
