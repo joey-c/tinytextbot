@@ -188,7 +188,14 @@ def route_update():
 
     update_type = list(
         filter(lambda possible_type: possible_type.value in update,
-               telegram.Update.Type))[0]
+               telegram.Update.Type))
+
+    if update_type:
+        update_type = update_type[0]
+    else:
+        logger = logging.getLogger("telegram.update")
+        logger.info("Unknown update type received. " + str(update))
+        return result
 
     if update_type in routes:
         result = routes[update_type](update, update_id)
