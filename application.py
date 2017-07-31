@@ -1,13 +1,11 @@
 import logging
 
-from flask import Flask
-from flask import request
+import flask
 
 import analytics
 import telegram
 import tiny
 from sorted_dict_with_max_size import SortedDictWithMaxSize
-
 
 logging.basicConfig(filename='/opt/python/log/my.log',
                     level=logging.DEBUG,
@@ -15,7 +13,7 @@ logging.basicConfig(filename='/opt/python/log/my.log',
                            '%(message)s',
                     datefmt='%d/%m/%Y %I:%M:%S %p')
 
-application = Flask(__name__)
+application = flask.Flask(__name__)
 application.debug = True
 
 CONNECTION_TIMEOUT = 7  # in seconds
@@ -63,10 +61,9 @@ def message_to_bot_handler(update, update_id):
     if message_text is "/start":
         return greet_new_user(update_id, chat_id, user_id, message_id)
 
-    instructions = INSTRUCTIONS
     response_success, response_text = send_message(
         chat_id,
-        instructions,
+        INSTRUCTIONS,
         "Failed to send instructions to " + str(user_id) + ".")
 
     logging.getLogger("bot.response.message").debug(
@@ -181,7 +178,7 @@ routes = {telegram.Update.Type.MESSAGE: message_to_bot_handler,
 def route_update():
     result = ""
 
-    update = request.get_json()
+    update = flask.request.get_json()
     update_id = update[telegram.Update.Field.UPDATE_ID.value]
     if update_id in processed_updates.values() or \
        update_id in ignored_updates.values():
