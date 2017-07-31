@@ -3,7 +3,7 @@ import logging
 import os
 from enum import Enum
 
-import requests as outgoing_requests
+import requests
 
 
 class Result(object):
@@ -73,16 +73,16 @@ def post(destination, json_data, error_message, connection_timeout=7):
     logger = logging.getLogger("connection")
 
     try:
-        response = outgoing_requests.post(destination,
-                                          json=json_data,
-                                          timeout=connection_timeout)
+        response = requests.post(destination,
+                                 json=json_data,
+                                 timeout=connection_timeout)
         response.raise_for_status()
-    except outgoing_requests.Timeout:
+    except requests.Timeout:
         logger.info("Timed out after " + str(connection_timeout) +
                     " seconds. " + error_message)
-    except outgoing_requests.ConnectionError:
+    except requests.ConnectionError:
         logger.info("A network problem occurred. " + error_message)
-    except outgoing_requests.HTTPError:
+    except requests.HTTPError:
         logger.info("HTTP request failed with error code " +
                     str(response.status_code) + ". " + error_message)
     finally:

@@ -2,16 +2,15 @@ import logging
 import os
 from enum import Enum
 
-import requests as outgoing_requests
+import requests
 
-from application import CONNECTION_TIMEOUT
 
-ANALYTICS_TOKEN = os.environ["ANALYTICS_TOKEN"]
+TOKEN = os.environ["ANALYTICS_TOKEN"]
 analytics = "https://www.google-analytics.com/"
 analytics_debug = analytics + "debug/collect"
 analytics_real = analytics + "collect"
 base_payload = {"v": "1",
-                "tid": ANALYTICS_TOKEN,
+                "tid": TOKEN,
                 "t": "event"}
 
 
@@ -31,21 +30,21 @@ class Event(object):
 # Sends a payload containing base_payload and params to Google Analytics.
 # If the hit is valid as verified by sending it to analytics_debug,
 # then the hit will be sent to analytics_real.
-def update(user_id, event_category, event_action, event_label=None):
+def update(user_id, event_category, event_action, event_label=None, timeout=7):
     logger = logging.getLogger("Analytics")
     params = build_params(user_id, event_category, event_action, event_label)
-    valid = validate_hit(params)
+    valid = validate_hit(params, timeout)
     if valid:
-        response = send(analytics_real, params)
+        response = send(analytics_real, params, timeout)
         if response:
             logger.info("Successfully updated with " + str(params))
     return valid
 
 
 # Sends params to analytics_debug to check if the hit is valid.
-def validate_hit(params):
+def validate_hit(params, timeout):
     logger = logging.getLogger("Analytics")
-    response = send(analytics_debug, params)
+    response = send(analytics_debug, params, timeout=timeout)
     valid = False
     if response:
         result = response.json()["hitParsingResult"][0]
@@ -58,19 +57,18 @@ def validate_hit(params):
 
 # Sends params to destination via url-encoding.
 # Catches common connection errors.
-def send(destination, params):
+def send(destination, params, timeout):
     response = None
     logger = logging.getLogger("connection.analytics")
     try:
-        response = outgoing_requests.post(destination,
-                                          params=params,
-                                          timeout=CONNECTION_TIMEOUT)
-    except outgoing_requests.Timeout:
-        logger.info("Timed out after " + str(CONNECTION_TIMEOUT) +
-                    " seconds. ")
-    except outgoing_requests.ConnectionError:
+        response = requests.post(destination,
+                                 params=params,
+                                 timeout=timeout)
+    except requests.Timeout:
+        logger.info("Timed out after " + str(timeout) + " seconds. ")
+    except requests.ConnectionError:
         logger.info("A network problem occurred. ")
-    except outgoing_requests.HTTPError:
+    except requests.HTTPError:
         logger.info("HTTP request failed with error code " +
                     str(response.status_code) + ". ")
     return response
