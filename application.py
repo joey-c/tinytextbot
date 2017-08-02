@@ -83,8 +83,13 @@ def message_to_bot_handler(update, update_id):
 
         analytics.update(user_id,
                          analytics.Event.Category.BOT,
-                         analytics.Event.Action.INSTRUCTIONS)
-
+                         analytics.Event.Action.INSTRUCTIONS,
+                         event_label=update_id)
+    else:
+        analytics.update(user_id,
+                         analytics.Event.Category.BOT,
+                         analytics.Event.Action.FAILED,
+                         event_label=update_id)
     return ""
 
 
@@ -105,11 +110,19 @@ def greet_new_user(update_id, chat_id, user_id, message_id):
 
     if response_success:
         processed_updates.add(update_id)
-
-    analytics.update(user_id,
-                     analytics.Event.Category.USER,
-                     analytics.Event.Action.START,
-                     event_label=chat_id)
+        analytics.update(user_id,
+                         analytics.Event.Category.USER,
+                         analytics.Event.Action.START,
+                         event_label=chat_id)
+        analytics.update(user_id,
+                         analytics.Event.Category.BOT,
+                         analytics.Event.Action.GREETINGS,
+                         event_label=update_id)
+    else:
+        analytics.update(user_id,
+                         analytics.Event.Category.BOT,
+                         analytics.Event.Action.FAILED,
+                         event_label=update_id)
 
     return ""
 
@@ -125,11 +138,6 @@ def inline_query_handler(update, update_id):
 
     user_id = telegram.get_user_id(update, telegram.Update.Type.INLINE_QUERY)
     query_id = inline_query[fields.ID.value]
-
-    analytics.update(user_id,
-                     analytics.Event.Category.USER,
-                     analytics.Event.Action.PREVIEW)
-
     result = telegram.Result(tiny.convert_string(query))
     answer = {"inline_query_id": query_id, "results": [result.__dict__]}
 
@@ -148,6 +156,15 @@ def inline_query_handler(update, update_id):
 
     if response_success:
         processed_updates.add(update_id)
+        analytics.update(user_id,
+                         analytics.Event.Category.USER,
+                         analytics.Event.Action.PREVIEW,
+                         event_label=update_id)
+    else:
+        analytics.update(user_id,
+                         analytics.Event.Category.BOT,
+                         analytics.Event.Action.FAILED,
+                         event_label=update_id)
 
     return ""
 
@@ -185,21 +202,33 @@ def route_update():
     if not update_type:
         logger = logging.getLogger("telegram.update")
         logger.info("Unknown update type received. " + str(update))
+        analytics.update(0,
+                         analytics.Event.Category.TELEGRAM,
+                         analytics.Event.Action.UNKNOWN,
+                         event_label=str(update))
         return result
 
     update_id = update[telegram.Update.Field.UPDATE_ID.value]
-    user_id = telegram.get_user_id(update, update_id)
+    if update_type not in routes:
+        logging.getLogger("telegram.update").info("Ignoring update: " +
+                                                  str(update))
+        ignored_updates.add(update_id)
+        analytics.update(0,
+                         analytics.Event.Category.TELEGRAM,
+                         analytics.Event.Action.UNSUPPORTED,
+                         event_label=update_type.value)
+        return result
+
+    user_id = telegram.get_user_id(update, update_type)
     if update_id in processed_updates.values() or \
        update_id in ignored_updates.values():
         logger = logging.getLogger("tracker")
         logger.info("Ignoring update " + str(update_id) + ".")
+        analytics.update(user_id,
+                         analytics.Event.Category.USER,
+                         analytics.Event.Action.DUPLICATE,
+                         event_label=update_id)
         return result
 
-    if update_type in routes:
-        result = routes[update_type](update, update_id)
-    else:
-        logging.getLogger("telegram.update").info("Ignoring update: " +
-                                                  str(update))
-        ignored_updates.add(update_id)
-
+    result = routes[update_type](update, update_id)
     return result

@@ -18,6 +18,7 @@ class Event(object):
     class Category(Enum):
         USER = "User"
         BOT = "Bot"
+        TELEGRAM = "Telegram"
 
     class Action(Enum):
         PREVIEW = "Preview"
@@ -25,6 +26,11 @@ class Event(object):
         START = "Start"
         MESSAGE = "Message"
         INSTRUCTIONS = "Instructions"
+        GREETINGS = "Greetings"
+        DUPLICATE = "Duplicate"
+        FAILED = "Failed"
+        UNKNOWN = "Unknown"
+        UNSUPPORTED = "Unsupported"
 
 
 # Sends a payload containing base_payload and params to Google Analytics.
