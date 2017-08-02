@@ -89,3 +89,26 @@ def post(destination, json_data, error_message, connection_timeout=7):
         logger.debug(str(json_data))
 
     return response
+
+
+def get_user_id(update, update_type):
+    update_types = {
+        Update.Type.MESSAGE: get_user_id_from_message,
+        Update.Type.INLINE_QUERY: get_user_id_from_inline_query,
+        Update.Type.CHOSEN_INLINE_RESULT: get_user_id_from_chosen_inline_result
+    }
+    return update_types[update_type](update)
+
+
+def get_user_id_from_message(update):
+    fields = Update.Field
+    return update[fields.MESSAGE.value][fields.FROM.value][fields.ID.value]
+
+
+def get_user_id_from_inline_query(update):
+    inline_query = update[Update.Field.INLINE_QUERY.value]
+    return inline_query[Update.Field.FROM.value][Update.Field.ID.value]
+
+
+def get_user_id_from_chosen_inline_result(update):
+    return update[Update.Field.FROM]

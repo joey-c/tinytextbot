@@ -45,8 +45,8 @@ def send_message(chat_id, message_text, error_message):
 # Else, the bot will reply with usage instructions.
 def message_to_bot_handler(update, update_id):
     fields = telegram.Update.Field
+    user_id = telegram.get_user_id(update, telegram.Update.Type.MESSAGE)
     message = update[fields.MESSAGE.value]
-    user_id = message[fields.FROM.value][fields.ID.value]
     message_id = message[fields.MESSAGE_ID.value]
     message_date = message[fields.DATE.value]
     message_text = message[fields.TEXT.value]
@@ -123,7 +123,7 @@ def inline_query_handler(update, update_id):
         ignored_updates.add(update_id)
         return ""
 
-    user_id = inline_query[fields.FROM.value][fields.ID.value]
+    user_id = telegram.get_user_id(update, telegram.Update.Type.INLINE_QUERY)
     query_id = inline_query[fields.ID.value]
 
     analytics.update(user_id,
@@ -155,7 +155,8 @@ def inline_query_handler(update, update_id):
 # Updates analytics that a query result was chosen, and hence sent.
 def result_chosen_handler(update, update_id):
     logging.getLogger("user.sent").info("Confirmation received.")
-    user_id = update[telegram.Update.Field.FROM]
+    user_id = telegram.get_user_id(update,
+                                   telegram.Update.Type.CHOSEN_INLINE_RESULT)
     update_result = analytics.update(user_id,
                                      analytics.Event.Category.USER,
                                      analytics.Event.Action.SENT)
@@ -180,6 +181,7 @@ def route_update():
 
     update = flask.request.get_json()
     update_id = update[telegram.Update.Field.UPDATE_ID.value]
+    user_id = telegram.get_user_id(update, update_id)
     if update_id in processed_updates.values() or \
        update_id in ignored_updates.values():
         logger = logging.getLogger("tracker")
