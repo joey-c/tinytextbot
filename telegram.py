@@ -112,3 +112,11 @@ def get_user_id_from_inline_query(update):
 
 def get_user_id_from_chosen_inline_result(update):
     return update[Update.Field.FROM]
+
+
+def get_update_type(update):
+    update_type = list(
+        filter(lambda possible_type: possible_type.value in update,
+               Update.Type))
+    if len(update_type) == 1:
+        return update_type[0]

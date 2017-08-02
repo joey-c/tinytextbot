@@ -180,23 +180,19 @@ def route_update():
     result = ""
 
     update = flask.request.get_json()
+
+    update_type = telegram.get_update_type(update)
+    if not update_type:
+        logger = logging.getLogger("telegram.update")
+        logger.info("Unknown update type received. " + str(update))
+        return result
+
     update_id = update[telegram.Update.Field.UPDATE_ID.value]
     user_id = telegram.get_user_id(update, update_id)
     if update_id in processed_updates.values() or \
        update_id in ignored_updates.values():
         logger = logging.getLogger("tracker")
         logger.info("Ignoring update " + str(update_id) + ".")
-        return result
-
-    update_type = list(
-        filter(lambda possible_type: possible_type.value in update,
-               telegram.Update.Type))
-
-    if update_type:
-        update_type = update_type[0]
-    else:
-        logger = logging.getLogger("telegram.update")
-        logger.info("Unknown update type received. " + str(update))
         return result
 
     if update_type in routes:
