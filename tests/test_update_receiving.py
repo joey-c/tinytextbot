@@ -47,6 +47,10 @@ def mock_telegram(successful=True):
                   url=telegram.api_send_message,
                   status=200,
                   json=telegram_json_response)
+    responses.add(method=responses.POST,
+                  url=telegram.api_answer_inline_query,
+                  status=200,
+                  json=telegram_json_response)
 
 
 # Scoping test_client doesn't really work.
@@ -222,10 +226,33 @@ class TestStartMessage(BaseTest):
                                "uid": update["message"]["from"]["id"]}
 
 
+class TestInlineQuery(BaseTest):
+    correct_number_of_calls = 3
 
+    correct_telegram_method = telegram.api_answer_inline_query
 
-class TestInlineQuery(object):
-    pass
+    update = {"update_id": 2,
+              "inline_query": {"id": 1,
+                               "from": {"id": 2,
+                                        "first_name": "name"},
+                               "query": "text to make tiny"}}
+
+    correct_telegram_json = {
+        "inline_query_id": update["inline_query"]["id"],
+        "results": [{"type": "article",
+                     "id": "0",
+                     "title": "Choose this to send your tiny text!",
+                     "description": "ᵗᵉˣᵗ ᵗᵒ ᵐᵃᵏᵉ ᵗᶦⁿʸ",
+                     "input_message_content": {
+                         "message_text": "ᵗᵉˣᵗ ᵗᵒ ᵐᵃᵏᵉ ᵗᶦⁿʸ"}}]}
+
+    correct_params_for_received = {"v": 1,
+                                   "tid": ANALYTICS_TOKEN,
+                                   "t": "event",
+                                   "ea": "Preview",
+                                   "ec": "User",
+                                   "el": update["update_id"],
+                                   "uid": update["inline_query"]["from"]["id"]}
 
 
 class TestChosenInlineQuery(object):
