@@ -273,3 +273,59 @@ class TestChosenInlineQuery(BaseTest):
         "ea": "Sent",
         "ec": "User",
         "uid": update["chosen_inline_result"]["from"]["id"]}
+
+
+# Does not inherit from BaseTest as there will be two sets of outgoing
+# requests – one set for the first time the update is received, and another
+# for handling the duplicate.
+class TestDuplicates(object):
+    # 5 for the first update, and 2 for the duplicate
+    correct_number_of_calls = 5 + 2
+
+    update = copy.copy(TestMessage.update)
+    update["update_id"] = 4
+
+    correct_params_for_duplicate = {"v": 1,
+                                    "tid": ANALYTICS_TOKEN,
+                                    "t": "event",
+                                    "uid": update["message"]["from"]["id"],
+                                    "ea": "Duplicate",
+                                    "ec": "User",
+                                    "el": update["update_id"]}
+
+    @responses.activate
+    @pytest.fixture(scope="class")
+    def calls(self, app):
+        mock_telegram()
+        mock_analytics()
+
+        application.processed_updates.clear()
+
+        app.post("/" + TELEGRAM_TOKEN,
+                 data=json.dumps(self.update),
+                 content_type="application/json")
+        response = app.post("/" + TELEGRAM_TOKEN,
+                            data=json.dumps(self.update),
+                            content_type="application/json")
+        assert response.status_code == 200
+
+        # For reasons unknown, responses.calls doesn't persist
+        calls_copy = copy.deepcopy(responses.calls)
+        return calls_copy
+
+    def test_calls(self, calls):
+        assert len(calls) == self.correct_number_of_calls
+
+    def test_analytics_duplicate_message(self, calls):
+        debug_duplicate_request = calls[5].request
+        assert analytics.analytics_debug in debug_duplicate_request.url
+        debug_received_params = get_params(debug_duplicate_request)
+        assert debug_received_params == self.correct_params_for_duplicate
+
+        log_duplicate_request = calls[6].request
+        assert analytics.analytics_real in log_duplicate_request.url
+        log_received_params = get_params(log_duplicate_request)
+        assert log_received_params == self.correct_params_for_duplicate
+
+    def test_tracker(self):
+        assert len(application.processed_updates) == 1
