@@ -36,11 +36,9 @@ class Update(object):
         FROM = "from"
         ID = "id"
         CHAT = "chat"
-        MESSAGE = "message"
         SUCCESSFUL = "ok"
         DESCRIPTION = "description"
         RESULT = "result"
-        INLINE_QUERY = "inline_query"
         QUERY = "query"
         TEXT = "text"
         DATE = "date"
@@ -101,17 +99,18 @@ def get_user_id(update, update_type):
 
 
 def get_user_id_from_message(update):
-    fields = Update.Field
-    return update[fields.MESSAGE.value][fields.FROM.value][fields.ID.value]
+    message = update[Update.Type.MESSAGE.value]
+    return message[Update.Field.FROM.value][Update.Field.ID.value]
 
 
 def get_user_id_from_inline_query(update):
-    inline_query = update[Update.Field.INLINE_QUERY.value]
+    inline_query = update[Update.Type.INLINE_QUERY.value]
     return inline_query[Update.Field.FROM.value][Update.Field.ID.value]
 
 
 def get_user_id_from_chosen_inline_result(update):
-    return update[Update.Field.FROM]
+    chosen_result = update[Update.Type.CHOSEN_INLINE_RESULT.value]
+    return chosen_result[Update.Field.FROM.value][Update.Field.ID.value]
 
 
 def get_update_type(update):
