@@ -190,6 +190,7 @@ class TestMessage(BaseTest):
                                "t": "event",
                                "ea": "Instructions",
                                "ec": "Bot",
+                               "el": update["update_id"],
                                "uid": update["message"]["from"]["id"]}
 
 

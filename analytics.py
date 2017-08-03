@@ -85,7 +85,7 @@ def build_params(user_id, event_category, event_action, event_label):
               "ec": event_category.value,
               "ea": event_action.value}
 
-    if event_label:
+    if not event_label is None:
         params.update(el=event_label)
 
     params.update(base_payload)
