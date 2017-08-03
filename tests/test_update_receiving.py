@@ -132,13 +132,14 @@ class BaseTest(object):
         if not self.correct_params_for_received:
             return
 
-        call_position = self.get_call_position(self.CallType.ANALYTICS_RECEIVED)
+        call_position = self.get_call_position(
+            self.CallType.ANALYTICS_RECEIVED)
         debug_received_request = calls[call_position].request
         assert analytics.analytics_debug in debug_received_request.url
         debug_received_params = get_params(debug_received_request)
         assert debug_received_params == self.correct_params_for_received
 
-        log_received_request = calls[call_position+1].request
+        log_received_request = calls[call_position + 1].request
         assert analytics.analytics_real in log_received_request.url
         log_received_params = get_params(log_received_request)
         assert log_received_params == self.correct_params_for_received
@@ -153,7 +154,7 @@ class BaseTest(object):
         debug_sent_params = get_params(debug_sent_request)
         assert debug_sent_params == self.correct_params_for_sent
 
-        log_sent_request = calls[call_position+1].request
+        log_sent_request = calls[call_position + 1].request
         assert analytics.analytics_real in log_sent_request.url
         log_sent_params = get_params(log_sent_request)
         assert log_sent_params == self.correct_params_for_sent
@@ -255,5 +256,19 @@ class TestInlineQuery(BaseTest):
                                    "uid": update["inline_query"]["from"]["id"]}
 
 
-class TestChosenInlineQuery(object):
-    pass
+class TestChosenInlineQuery(BaseTest):
+    correct_number_of_calls = 2
+
+    update = {"update_id": 3,
+              "chosen_inline_result": {"result_id": "0",
+                                       "from": {"id": 2,
+                                                "first_name": "name"},
+                                       "query": "query"}}
+
+    correct_params_for_received = {
+        "v": 1,
+        "tid": ANALYTICS_TOKEN,
+        "t": "event",
+        "ea": "Sent",
+        "ec": "User",
+        "uid": update["chosen_inline_result"]["from"]["id"]}
