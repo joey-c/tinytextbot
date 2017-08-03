@@ -46,7 +46,7 @@ def send_message(chat_id, message_text, error_message):
 def message_to_bot_handler(update, update_id):
     fields = telegram.Update.Field
     user_id = telegram.get_user_id(update, telegram.Update.Type.MESSAGE)
-    message = update[fields.MESSAGE.value]
+    message = update[telegram.Update.Type.MESSAGE.value]
     message_id = message[fields.MESSAGE_ID.value]
     message_date = message[fields.DATE.value]
     message_text = message[fields.TEXT.value]
@@ -130,7 +130,7 @@ def greet_new_user(update_id, chat_id, user_id, message_id):
 # Unwraps a query and responds with the query in tiny text.
 def inline_query_handler(update, update_id):
     fields = telegram.Update.Field
-    inline_query = update[fields.INLINE_QUERY.value]
+    inline_query = update[telegram.Update.Type.INLINE_QUERY.value]
     query = inline_query[fields.QUERY.value]
     if not query:
         ignored_updates.add(update_id)
