@@ -43,6 +43,10 @@ class Update(object):
         TEXT = "text"
         DATE = "date"
         MESSAGE_ID = "message_id"
+        NAME = "first_name"
+        TYPE = "type"
+        CHAT_ID = "chat_id"
+        START = "/start"
 
 
 TOKEN = os.environ["TELEGRAM_TOKEN"]

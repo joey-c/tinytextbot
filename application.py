@@ -59,7 +59,7 @@ def message_to_bot_handler(update, update_id):
                                             " in chat " + str(chat_id) +
                                             ": \"" + message_text + "\"")
 
-    if message_text == "/start":
+    if message_text == telegram.Update.Field.START.value:
         return greet_new_user(update_id, chat_id, user_id, message_id)
 
     response_success, response_text = send_message(

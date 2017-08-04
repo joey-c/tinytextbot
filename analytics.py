@@ -5,15 +5,6 @@ from enum import Enum
 import requests
 
 
-TOKEN = os.environ["ANALYTICS_TOKEN"]
-analytics = "https://www.google-analytics.com/"
-analytics_debug = analytics + "debug/collect"
-analytics_real = analytics + "collect"
-base_payload = {"v": "1",
-                "tid": TOKEN,
-                "t": "event"}
-
-
 class Event(object):
     class Category(Enum):
         USER = "User"
@@ -31,6 +22,25 @@ class Event(object):
         FAILED = "Failed"
         UNKNOWN = "Unknown"
         UNSUPPORTED = "Unsupported"
+
+    class Params(Enum):
+        EVENT_CATEGORY = "ec"
+        EVENT_ACTION = "ea"
+        EVENT_LABEL = "el"
+        VERSION = "v"
+        TOKEN_ID = "tid"
+        TYPE = "t"
+        USER_ID = "uid"
+        EVENT = "event"
+
+
+TOKEN = os.environ["ANALYTICS_TOKEN"]
+analytics = "https://www.google-analytics.com/"
+analytics_debug = analytics + "debug/collect"
+analytics_real = analytics + "collect"
+base_payload = {Event.Params.VERSION.value: "1",
+                Event.Params.TOKEN_ID.value: TOKEN,
+                Event.Params.TYPE.value: "event"}
 
 
 # Sends a payload containing base_payload and params to Google Analytics.
@@ -85,7 +95,7 @@ def build_params(user_id, event_category, event_action, event_label):
               "ec": event_category.value,
               "ea": event_action.value}
 
-    if not event_label is None:
+    if event_label is not None:
         params.update(el=event_label)
 
     params.update(base_payload)

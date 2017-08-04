@@ -14,6 +14,8 @@ import telegram
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 ANALYTICS_TOKEN = os.environ["ANALYTICS_TOKEN"]
 UTF8 = "UTF-8"
+Update = telegram.Update
+Params = analytics.Event.Params
 
 
 def get_params(request):
@@ -165,33 +167,45 @@ class TestMessage(BaseTest):
 
     correct_telegram_method = telegram.api_send_message
 
-    update = {"update_id": 0,
-              "message": {"message_id": 1,
-                          "from": {"id": 2,
-                                   "first_name": "name"},
-                          "date": 3,
-                          "chat": {"id": 4,
-                                   "type": "private"},
-                          "text": "sample message"}}
+    update = {
+        Update.Field.UPDATE_ID.value: 0,
+        Update.Type.MESSAGE.value: {
+            Update.Field.MESSAGE_ID.value: 1,
+            Update.Field.FROM.value: {Update.Field.ID.value: 2,
+                                      Update.Field.NAME.value: "name"},
+            Update.Field.DATE.value: 3,
+            Update.Field.CHAT.value: {Update.Field.ID.value: 4,
+                                      Update.Field.TYPE.value: "private"},
+            Update.Field.TEXT.value: "sample message"}}
 
-    correct_telegram_json = {"chat_id": update["message"]["chat"]["id"],
-                             "text": application.INSTRUCTIONS}
+    correct_telegram_json = {
+        Update.Field.CHAT_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.CHAT.value][
+                Update.Field.ID.value],
+        Update.Field.TEXT.value: application.INSTRUCTIONS}
 
-    correct_params_for_received = {"v": 1,
-                                   "tid": ANALYTICS_TOKEN,
-                                   "t": "event",
-                                   "ea": "Message",
-                                   "ec": "User",
-                                   "el": update["message"]["text"],
-                                   "uid": update["message"]["from"]["id"]}
+    correct_params_for_received = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.MESSAGE.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.USER.value,
+        Params.EVENT_LABEL.value:
+            update[Update.Type.MESSAGE.value][Update.Field.TEXT.value],
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
 
-    correct_params_for_sent = {"v": 1,
-                               "tid": ANALYTICS_TOKEN,
-                               "t": "event",
-                               "ea": "Instructions",
-                               "ec": "Bot",
-                               "el": update["update_id"],
-                               "uid": update["message"]["from"]["id"]}
+    correct_params_for_sent = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.INSTRUCTIONS.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.BOT.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
 
 
 class TestStartMessage(BaseTest):
@@ -199,33 +213,45 @@ class TestStartMessage(BaseTest):
 
     correct_telegram_method = telegram.api_send_message
 
-    update = {"update_id": 1,
-              "message": {"message_id": 1,
-                          "from": {"id": 2,
-                                   "first_name": "name"},
-                          "date": 3,
-                          "chat": {"id": 4,
-                                   "type": "private"},
-                          "text": "/start"}}
+    update = {Update.Field.UPDATE_ID.value: 1,
+              Update.Type.MESSAGE.value: {
+                  Update.Field.MESSAGE_ID.value: 1,
+                  Update.Field.FROM.value: {Update.Field.ID.value: 2,
+                                            Update.Field.NAME.value: "name"},
+                  Update.Field.DATE.value: 3,
+                  Update.Field.CHAT.value: {Update.Field.ID.value: 4,
+                                            Update.Field.TYPE.value: "private"},
+                  Update.Field.TEXT.value: Update.Field.START.value}}
 
-    correct_telegram_json = {"chat_id": update["message"]["chat"]["id"],
-                             "text": application.HELLO}
+    correct_telegram_json = {
+        Update.Field.CHAT_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.CHAT.value][
+                Update.Field.ID.value],
+        Update.Field.TEXT.value: application.HELLO}
 
-    correct_params_for_received = {"v": 1,
-                                   "tid": ANALYTICS_TOKEN,
-                                   "t": "event",
-                                   "ea": "Start",
-                                   "ec": "User",
-                                   "el": update["message"]["chat"]["id"],
-                                   "uid": update["message"]["from"]["id"]}
+    correct_params_for_received = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.START.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.USER.value,
+        Params.EVENT_LABEL.value:
+            update[Update.Type.MESSAGE.value][Update.Field.CHAT.value][
+                Update.Field.ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
 
-    correct_params_for_sent = {"v": 1,
-                               "tid": ANALYTICS_TOKEN,
-                               "t": "event",
-                               "ea": "Greetings",
-                               "ec": "Bot",
-                               "el": update["update_id"],
-                               "uid": update["message"]["from"]["id"]}
+    correct_params_for_sent = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.GREETINGS.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.BOT.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
 
 
 class TestInlineQuery(BaseTest):
@@ -233,46 +259,55 @@ class TestInlineQuery(BaseTest):
 
     correct_telegram_method = telegram.api_answer_inline_query
 
-    update = {"update_id": 2,
-              "inline_query": {"id": 1,
-                               "from": {"id": 2,
-                                        "first_name": "name"},
-                               "query": "text to make tiny"}}
+    update = {Update.Field.UPDATE_ID.value: 2,
+              Update.Type.INLINE_QUERY.value: {
+                  Update.Field.ID.value: 1,
+                  Update.Field.FROM.value: {
+                      Update.Field.ID.value: 2,
+                      Update.Field.NAME.value: "name"},
+                  Update.Field.QUERY.value: "text to make tiny"}}
 
     correct_telegram_json = {
-        "inline_query_id": update["inline_query"]["id"],
-        "results": [{"type": "article",
-                     "id": "0",
+        "inline_query_id": update[Update.Type.INLINE_QUERY.value][
+            Update.Field.ID.value],
+        "results": [{Update.Field.TYPE.value: "article",
+                     Update.Field.ID.value: "0",
                      "title": "Choose this to send your tiny text!",
                      "description": "ᵗᵉˣᵗ ᵗᵒ ᵐᵃᵏᵉ ᵗᶦⁿʸ",
                      "input_message_content": {
                          "message_text": "ᵗᵉˣᵗ ᵗᵒ ᵐᵃᵏᵉ ᵗᶦⁿʸ"}}]}
 
-    correct_params_for_received = {"v": 1,
-                                   "tid": ANALYTICS_TOKEN,
-                                   "t": "event",
-                                   "ea": "Preview",
-                                   "ec": "User",
-                                   "el": update["update_id"],
-                                   "uid": update["inline_query"]["from"]["id"]}
+    correct_params_for_received = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.PREVIEW.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.USER.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.INLINE_QUERY.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
 
 
 class TestChosenInlineQuery(BaseTest):
     correct_number_of_calls = 2
 
-    update = {"update_id": 3,
-              "chosen_inline_result": {"result_id": "0",
-                                       "from": {"id": 2,
-                                                "first_name": "name"},
-                                       "query": "query"}}
+    update = {Update.Field.UPDATE_ID.value: 3,
+              Update.Type.CHOSEN_INLINE_RESULT.value: {
+                  "result_id": "0",
+                  Update.Field.FROM.value: {Update.Field.ID.value: 2,
+                                            Update.Field.NAME.value: "name"},
+                  Update.Field.QUERY.value: Update.Field.QUERY.value}}
 
     correct_params_for_received = {
-        "v": 1,
-        "tid": ANALYTICS_TOKEN,
-        "t": "event",
-        "ea": "Sent",
-        "ec": "User",
-        "uid": update["chosen_inline_result"]["from"]["id"]}
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.SENT.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.USER.value,
+        Params.USER_ID.value: update[Update.Type.CHOSEN_INLINE_RESULT.value][
+            Update.Field.FROM.value][
+            Update.Field.ID.value]}
 
 
 # Does not inherit from BaseTest as there will be two sets of outgoing
@@ -283,15 +318,18 @@ class TestDuplicates(object):
     correct_number_of_calls = 5 + 2
 
     update = copy.copy(TestMessage.update)
-    update["update_id"] = 4
+    update[Update.Field.UPDATE_ID.value] = 4
 
-    correct_params_for_duplicate = {"v": 1,
-                                    "tid": ANALYTICS_TOKEN,
-                                    "t": "event",
-                                    "uid": update["message"]["from"]["id"],
-                                    "ea": "Duplicate",
-                                    "ec": "User",
-                                    "el": update["update_id"]}
+    correct_params_for_duplicate = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value],
+        Params.EVENT_ACTION.value: analytics.Event.Action.DUPLICATE.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.USER.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value]}
 
     @responses.activate
     @pytest.fixture(scope="class")
