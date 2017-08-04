@@ -1,4 +1,5 @@
 import logging
+import os
 
 import flask
 
@@ -7,7 +8,7 @@ import telegram
 import tiny
 from sorted_dict_with_max_size import SortedDictWithMaxSize
 
-logging.basicConfig(filename='opt/python/log/my.log',
+logging.basicConfig(filename=os.environ["LOG_LOCATION"],
                     level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - '
                            '%(message)s',
