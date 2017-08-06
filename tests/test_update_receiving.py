@@ -210,6 +210,34 @@ class TestMessage(BaseTest):
                 Update.Field.ID.value]}
 
 
+class TestUnsuccessfulReplyToMessage(BaseTest):
+    telegram_successful = False
+
+    correct_number_of_calls = 3
+
+    correct_telegram_method = telegram.api_send_message
+
+    update = copy.copy(TestMessage.update)
+    update[Update.Field.UPDATE_ID.value] = 11
+
+    correct_telegram_json = {
+        Update.Field.CHAT_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.CHAT.value][
+                Update.Field.ID.value],
+        Update.Field.TEXT.value: application.INSTRUCTIONS}
+
+    correct_params_for_sent = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.FAILED.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.BOT.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
+
+
 class TestStartMessage(BaseTest):
     correct_number_of_calls = 5
 
@@ -256,6 +284,34 @@ class TestStartMessage(BaseTest):
                 Update.Field.ID.value]}
 
 
+class TestUnsuccessfulReplyToStartMessage(BaseTest):
+    telegram_successful = False
+
+    correct_number_of_calls = 3
+
+    correct_telegram_method = telegram.api_send_message
+
+    update = copy.copy(TestStartMessage.update)
+    update[Update.Field.UPDATE_ID.value] = 21
+
+    correct_telegram_json = {
+        Update.Field.CHAT_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.CHAT.value][
+                Update.Field.ID.value],
+        Update.Field.TEXT.value: application.HELLO}
+
+    correct_params_for_sent = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.FAILED.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.BOT.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.MESSAGE.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
+
+
 class TestInlineQuery(BaseTest):
     correct_number_of_calls = 3
 
@@ -285,6 +341,38 @@ class TestInlineQuery(BaseTest):
         Params.TYPE.value: Params.EVENT.value,
         Params.EVENT_ACTION.value: analytics.Event.Action.PREVIEW.value,
         Params.EVENT_CATEGORY.value: analytics.Event.Category.USER.value,
+        Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
+        Params.USER_ID.value:
+            update[Update.Type.INLINE_QUERY.value][Update.Field.FROM.value][
+                Update.Field.ID.value]}
+
+
+class TestUnsuccessfulReplyToInlineQuery(BaseTest):
+    telegram_successful = False
+
+    correct_number_of_calls = 3
+
+    correct_telegram_method = telegram.api_answer_inline_query
+
+    update = copy.copy(TestInlineQuery.update)
+    update[Update.Field.UPDATE_ID.value] = 31
+
+    correct_telegram_json = {
+        "inline_query_id": update[Update.Type.INLINE_QUERY.value][
+            Update.Field.ID.value],
+        "results": [{Update.Field.TYPE.value: "article",
+                     Update.Field.ID.value: "0",
+                     "title": "Choose this to send your tiny text!",
+                     "description": "ᵗᵉˣᵗ ᵗᵒ ᵐᵃᵏᵉ ᵗᶦⁿʸ",
+                     "input_message_content": {
+                         "message_text": "ᵗᵉˣᵗ ᵗᵒ ᵐᵃᵏᵉ ᵗᶦⁿʸ"}}]}
+
+    correct_params_for_sent = {
+        Params.VERSION.value: 1,
+        Params.TOKEN_ID.value: ANALYTICS_TOKEN,
+        Params.TYPE.value: Params.EVENT.value,
+        Params.EVENT_ACTION.value: analytics.Event.Action.FAILED.value,
+        Params.EVENT_CATEGORY.value: analytics.Event.Category.BOT.value,
         Params.EVENT_LABEL.value: update[Update.Field.UPDATE_ID.value],
         Params.USER_ID.value:
             update[Update.Type.INLINE_QUERY.value][Update.Field.FROM.value][
