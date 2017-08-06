@@ -170,7 +170,7 @@ class TestMessage(BaseTest):
     correct_telegram_method = telegram.api_send_message
 
     update = {
-        Update.Field.UPDATE_ID.value: 0,
+        Update.Field.UPDATE_ID.value: 1,
         Update.Type.MESSAGE.value: {
             Update.Field.MESSAGE_ID.value: 1,
             Update.Field.FROM.value: {Update.Field.ID.value: 2,
@@ -215,7 +215,7 @@ class TestStartMessage(BaseTest):
 
     correct_telegram_method = telegram.api_send_message
 
-    update = {Update.Field.UPDATE_ID.value: 1,
+    update = {Update.Field.UPDATE_ID.value: 2,
               Update.Type.MESSAGE.value: {
                   Update.Field.MESSAGE_ID.value: 1,
                   Update.Field.FROM.value: {Update.Field.ID.value: 2,
@@ -261,7 +261,7 @@ class TestInlineQuery(BaseTest):
 
     correct_telegram_method = telegram.api_answer_inline_query
 
-    update = {Update.Field.UPDATE_ID.value: 2,
+    update = {Update.Field.UPDATE_ID.value: 3,
               Update.Type.INLINE_QUERY.value: {
                   Update.Field.ID.value: 1,
                   Update.Field.FROM.value: {
@@ -294,7 +294,7 @@ class TestInlineQuery(BaseTest):
 class TestChosenInlineQuery(BaseTest):
     correct_number_of_calls = 2
 
-    update = {Update.Field.UPDATE_ID.value: 3,
+    update = {Update.Field.UPDATE_ID.value: 4,
               Update.Type.CHOSEN_INLINE_RESULT.value: {
                   "result_id": "0",
                   Update.Field.FROM.value: {Update.Field.ID.value: 2,
@@ -320,7 +320,7 @@ class TestDuplicates(object):
     correct_number_of_calls = 5 + 2
 
     update = copy.copy(TestMessage.update)
-    update[Update.Field.UPDATE_ID.value] = 4
+    update[Update.Field.UPDATE_ID.value] = 5
 
     correct_params_for_duplicate = {
         Params.VERSION.value: 1,
