@@ -63,6 +63,8 @@ def app():
 
 
 class BaseTest(object):
+    telegram_successful = True
+    analytics_successful = True
     update = None
     correct_number_of_calls = None
     correct_telegram_method = None
@@ -104,8 +106,8 @@ class BaseTest(object):
     @responses.activate
     @pytest.fixture(scope="class")
     def calls(self, app):
-        mock_telegram()
-        mock_analytics()
+        mock_telegram(self.telegram_successful)
+        mock_analytics(self.analytics_successful)
 
         response = app.post("/" + TELEGRAM_TOKEN,
                             data=json.dumps(self.update),
