@@ -1,15 +1,12 @@
-import os
-import json
-import urllib.parse
 import copy
-from enum import Enum
-
+import json
+import os
 import pytest
 import responses
+import urllib.parse
+from enum import Enum
 
-import application
-import analytics
-import telegram
+from tinytextbot import telegram, analytics, application
 
 TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
 ANALYTICS_TOKEN = os.environ["ANALYTICS_TOKEN"]

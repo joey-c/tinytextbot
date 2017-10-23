@@ -1,12 +1,9 @@
+import flask
 import logging
 import os
+from tinytextbot.sorted_dict_with_max_size import SortedDictWithMaxSize
 
-import flask
-
-import analytics
-import telegram
-import tiny
-from sorted_dict_with_max_size import SortedDictWithMaxSize
+from tinytextbot import tiny, analytics, telegram
 
 logging.basicConfig(filename=os.environ["LOG_LOCATION"],
                     level=logging.DEBUG,
