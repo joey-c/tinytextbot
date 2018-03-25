@@ -93,7 +93,8 @@ def message_to_bot_handler(update, update_id):
 
 # Sends a greeting
 def greet_new_user(update_id, chat_id, user_id, message_id):
-    greeting = HELLO
+    greeting = "\n".join([HELLO, INSTRUCTIONS])
+
     response_success, response_text = send_message(
         chat_id,
         greeting,
