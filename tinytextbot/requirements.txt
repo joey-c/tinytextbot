@@ -2,4 +2,4 @@ Flask==0.12.2
 requests==2.18.1
 responses==0.6.0
 sortedcontainers==1.5.7
-urllib3==1.21.1
+urllib3==1.26.5
